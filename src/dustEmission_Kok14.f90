@@ -1,0 +1,66 @@
+subroutine dustEmmission_Kok14(em, soilF, lat,dxdy_degr, inNestNr, ix_wind, iy_wind, ix_wind_n, iy_wind_n,&
+                                time_int,mobilisationThreshold,inClay, f_clay_tmp)
+
+    use par_mod
+    use com_mod
+
+    implicit none
+
+    real     :: mfac, em, soilF, lat, mass, mobilisationThreshold, dxdy_degr
+    real     :: u_star_local, rho_air, flux
+    integer  :: ix_wind, iy_wind, ix_wind_n, iy_wind_n, time_int, inNestNr
+    real, parameter :: C_alpha=1.8!2.7 !(Kok et al. 2014, part 2)
+    real, parameter :: C_d0=4.4e-5
+    real, parameter :: C_e=2.0
+    real, parameter :: rho_air_0=1.225
+    real, parameter :: u_star_st_0=0.16
+    real :: f_clay, f_clay_tmp, C_d, tmp, f_bare, u_star_st, u_star_t
+    logical ::inClay
+
+        !Get friction velocity
+        if(inNestNr.eq.0)then
+            u_star_local=ustar(ix_wind,iy_wind,1,1)
+            rho_air=rho(ix_wind,iy_wind,1,1)
+        else
+            u_star_local=ustarn(ix_wind_n,iy_wind_n,1,1,inNestNr)
+            rho_air=rhon(ix_wind_n,iy_wind_n,1,1,inNestNr)
+        endif
+        
+        !Get threshold
+        u_star_t=mobilisationThreshold
+        u_star_st=u_star_t*SQRT(real(rho_air/rho_air_0))
+        C_d=C_d0*exp(-C_e*(u_star_st-u_star_st_0)/u_star_st_0)
+        f_bare=soilF
+        
+        !Get clay content
+        if(inClay)then
+            f_clay=real(f_clay_tmp/100)
+            if(f_clay.lt.0)then
+                f_clay=0.0 !No information on clay content
+            endif
+        else
+            f_clay=0.1 !Should never occur since clay is available at each grid point with soil
+        endif
+        
+       
+        !******************************************************************
+        !Calculate emitted mass (em) per time step if the threshold for saltation is exceeded
+        !******************************************************************	
+	if(u_star_local.ge.u_star_t)then	
+		
+		!multiplication factor accounting for time step, area and conversion to kg
+		!**********************************************************
+		mfac=3600.0*time_int*dxdy_degr*111.0e3*&
+				dxdy_degr*cos(pi/180.0*lat)*111.0e3	
+				
+		!Emitted mass in kg when mfac is used (otherwise mass flux in kg m-2 s-1)
+                tmp=C_alpha*(u_star_st-u_star_st_0)/u_star_st_0
+                flux=C_d*f_bare*f_clay*(rho_air*(u_star_local*u_star_local-u_star_t*u_star_t))/u_star_st &
+                        *((u_star_local/u_star_t)**tmp)
+                mass=flux*mfac
+                       
+               em=em+mass
+               
+	endif
+        
+end subroutine dustEmmission_Kok14

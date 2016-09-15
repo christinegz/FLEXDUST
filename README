@@ -1,0 +1,16 @@
+FLEXDUST
+Author: Christine Groot Zwaaftink (cgz@nilu.no)
+
+FLEXDUST can be used to calculate dust emission and prepare input (RELEASE) files for FLEXPART. 
+Other than input files in this folder, ECMWF wind fields are necessary. See FLEXPART documentation for details. The source code for reading of wind fields was mostly copied from FLEXPART.
+FLEXDUST requires the same libraries installed as FLEXPART.
+
+The model has only been tested for a single nested wind field and a single nested land cover file. Additional nested fields will require adjustments.
+
+Settings (e.g. domain, resolution, input files) can be adjusted in dust_mod.f90.
+
+To run the model:
+-prepare ECMWF data
+-adjust paths in dust_mod.f90
+-compile the code (make -f Makefile)
+-run with ./FLEXDUST
