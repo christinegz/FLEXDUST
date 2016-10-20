@@ -28,7 +28,7 @@ module dust_mod
     !***********************************************************************
     integer, parameter         :: landuse_file_type=2               !1>same as flexpart 2>MODIS
     logical, parameter         :: landuse_binary=.true.             !Is the landuse file already converted from ASCII to binary file?
-    character(*), parameter    :: landuse_file= '../INPUT/landcover_GLCNMO.bin'
+    character(*), parameter    :: landuse_file= '../INPUT/landcover_GLCNMO_l.bin'
     integer, parameter         :: nx_landuse=86400, ny_landuse=43200 !Size landuse file
     real, parameter            :: dxdy_degr_landuse=15./3600.        !Resolution landuse file
     !***********************************************************************
@@ -65,22 +65,22 @@ module dust_mod
     !Output files/settings
     !***********************************************************************
     !output time frame
-    integer, parameter          :: start_date_day  = 20120201!20120101
+    integer, parameter          :: start_date_day  = 20120221!20120101
     integer, parameter          :: start_date_hour = 000000
-    integer, parameter          :: time_step	  = 6
-    real, parameter             :: releaseDays	  = 2
+    integer, parameter          :: time_step	  = 12
+    real, parameter             :: releaseDays	  = 22
     !***********************************************************************
     
     !output grid
     !***********************************************************************
     character(*),parameter      :: output_directory  = '../output/'
-    real, parameter             :: lat_bottom        = -90
-    real, parameter             :: lon_left          = -180
+    real, parameter             :: lat_bottom        = -13
+    real, parameter             :: lon_left          = -100
     real, parameter             :: dx_dy_out         = 0.5  !resolution of emission calculation in degree
-    integer, parameter          :: release_dxdy_step = 1    !Interval of x and y in which release file should be written 
+    integer, parameter          :: release_dxdy_step = 4    !Interval of x and y in which release file should be written 
                                                             !(2 means that calculated emission of 4 grid cells with resolution dx_dy_out will be combined in 1 FLEXPART release)
-    integer, parameter          :: ny_lat_out        = 180/dx_dy_out!5/dx_dy_out
-    integer, parameter          :: nx_lon_out        = 360/dx_dy_out!14/dx_dy_out
+    integer, parameter          :: ny_lat_out        = 48/dx_dy_out!180/dx_dy_out!5/dx_dy_out
+    integer, parameter          :: nx_lon_out        = 150/dx_dy_out!360/dx_dy_out!14/dx_dy_out
     !***********************************************************************
     
     !Output files
@@ -92,20 +92,20 @@ module dust_mod
     !Switches output
     !***********************************************************************
     logical, parameter          :: RELEASEFILE=.true.       !Write a FLEXPART release file
-    logical, parameter          :: writeGridEmission=.false. !For each output time step, write a grid with emission (kg), 
+    logical, parameter          :: writeGridEmission=.true. !For each output time step, write a grid with emission (kg), 
                                                             !practical for splitting in regions and doing FLEXPART simulations with changing number of particles
     !***********************************************************************
     
     !Model parameters
     !***********************************************************************
-    real, parameter             :: mobThreshold = 0.3       !Default mobilization threshold should be wind speed or friction velocity, depending on choice "emissionModel", default should be 0.3 for emissionModel 2
+    real, parameter             :: mobThreshold = 0.3        !Default mobilization threshold should be wind speed or friction velocity, depending on choice "emissionModel", default should be 0.3 for emissionModel 2
     real, parameter             :: particlesPerTonDust = 1e-2!Number of particles to be released per ton of dust, adjust with resolution
-    integer, parameter          :: typeSizeDistr=2          !Use size distribution as in DustBowl (1), or similar to Kok 2011 (2 & 3) with many small particles in 3
-    integer, parameter          :: Junge_index = 0          !only for typeSizeDistr 1
-    real, parameter             :: scalingFactor = 4.8e-4   !Default value 4.8e-4 for emissionModel 2
-    integer, parameter          :: emissionModel = 2        !Choose from several emission Models (1: HSO, 2:MB95, 3:Kok et al. 2014), default and tested: 2
-    real, parameter             :: snowLimit =0.01          !From which snow amount should mobilization not be possible?
-    real, parameter             :: minMassWrite=1.0         !Minimum emission (kg) for which to write a release
+    integer, parameter          :: typeSizeDistr=3           !Use size distribution as in DustBowl (1), or similar to Kok 2011 (2 & 3) with many small particles in 3
+    integer, parameter          :: Junge_index = 0           !only for typeSizeDistr 1
+    real*8, parameter           :: scalingFactor = 4.8e-4    !Default value 4.8e-4 for emissionModel 2
+    integer, parameter          :: emissionModel = 2         !Choose from several emission Models (1: HSO, 2:MB95, 3:Kok et al. 2014), default and tested: 2
+    real, parameter             :: snowLimit =0.01           !From which snow amount should mobilization not be possible?
+    real, parameter             :: minMassWrite=50.0         !Minimum emission (kg) for which to write a release
     !***********************************************************************
     
     !Switches model

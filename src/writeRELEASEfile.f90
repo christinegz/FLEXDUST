@@ -138,7 +138,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
 
                 !Nr particles indication
                 estPart = max(1, min(1000, int(particlesPerTonDust * combEmission/1000.)))
-                if (estPart > 15)then
+                if (estPart > 20)then
                     
                     !Loop through size distribution
                     !*********************************************************
@@ -160,7 +160,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                         if (nrPart .lt. 8)then
                             call RANDOM_NUMBER(randomNumber)
                             call caldate(juldate + real(real(randomNumber * timestep)/24.), date_day, date_hour)
-                            call caldate(juldate + real(real((randomNumber + 1./15.) * timestep)/24.),date_day_next, date_hour_next)
+                            call caldate(juldate + real(real((randomNumber + 1./10.) * timestep)/24.),date_day_next, date_hour_next)
                         endif
 
                         !write release info
@@ -221,7 +221,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                     if (nrPart .lt. 8)then
                         call RANDOM_NUMBER(randomNumber)
                         call caldate(juldate + real(real(randomNumber * timestep)/24.), date_day, date_hour)
-                        call caldate(juldate + real(real((randomNumber + 1./15.) * timestep)/24.), date_day_next, date_hour_next)
+                        call caldate(juldate + real(real((randomNumber + 1./10.) * timestep)/24.), date_day_next, date_hour_next)
                     endif
 
                     !write release info

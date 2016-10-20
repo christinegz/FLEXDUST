@@ -131,7 +131,7 @@ IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
 
 release_file=trim(output_directory)//trim(release)
 write(*,*) 'Start FLEXDUST simulation'
-
+print*, 'Scaling factor:', scalingFactor
 !Read the global and nested landuse file and determine soil fraction per grid point
 !*************************************************************************************************
 write(*,*) 'Get land cover and soil data'
@@ -195,7 +195,7 @@ do while(tot_sec.lt.tot_sec_end)
             !*************************************************************
             call getfields(time_wind_field,nstop)
             !*************************************************************
-                           
+            print*, 'Finished reading wind'
             !Store precipitation previous time steps
             !*************************************************************
             precipitation(:,:,1:39)=precipitation(:,:,2:40)
@@ -214,7 +214,6 @@ do while(tot_sec.lt.tot_sec_end)
                 print*, 'Total soil moisture:', sum(sum(svw(:,:, 1, 1), 2), 1)
                 print*, 'Total precipitation:', sum(sum(lsprec(:,:, 1, 1), 2), 1), sum(sum(convprec(:,:, 1, 1), 2), 1)
                 call writeGrid(output_directory//'Soil_fraction.dat',soilFraction,nx_lon_out, ny_lat_out)
-
             endif
             !*************************************************************
  

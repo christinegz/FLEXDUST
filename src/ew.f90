@@ -31,6 +31,7 @@ real function ew(x)
   real :: x, y, a, c, d
 
   ew=0.
+  !print*, 'temp:', x
   if(x.le.0.) stop 'sorry: t not in [k]'
   y=373.16/x
   a=-7.90298*(y-1.)

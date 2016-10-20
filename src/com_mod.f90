@@ -123,7 +123,10 @@ module com_mod
 
   ! gdomainfill             .T., if domain-filling is global, .F. if not
 
-
+  !ZHG SEP 2015 wheather or not to read clouds from GRIB
+  logical :: readclouds
+ !ESO DEC 2015 whether or not both clwc and ciwc are present (if so they are summed)
+  logical :: sumclouds
 
   !*********************************************************************
   ! Variables defining the release locations, released species and their
@@ -341,6 +344,8 @@ module com_mod
   real :: pplev(0:nxmax-1,0:nymax-1,nuvzmax,2)
   integer(kind=1) :: clouds(0:nxmax-1,0:nymax-1,nzmax,2)
   integer :: cloudsh(0:nxmax-1,0:nymax-1,2)
+  real :: clwch(0:nxmax-1,0:nymax-1,nuvzmax,2)=0.0
+  real :: ciwch(0:nxmax-1,0:nymax-1,nuvzmax,2)=0.0
 
 
   ! uu,vv,ww [m/2]       wind components in x,y and z direction

@@ -7,7 +7,8 @@ use com_mod
 
 implicit none
 
-real     :: mfac, em_mass, soilF, lat, scalingFactor, dxdy_degr, em_flux
+real     :: mfac, em_mass, soilF, lat,  dxdy_degr, em_flux
+real*8   :: scalingFactor
 real     :: u_star_local, rho_air, eta, f_clay_tmp, f_clay, stress_local
 real     :: shearStressThres ! Threshold shear stress
 real     :: mobilisationThreshold ! Threshold friction velocity
@@ -111,6 +112,7 @@ logical :: inClay, test, ustarVersion
                     em_mass=em_mass+mass_tmp_stress*soilF*mfac
                     em_flux=em_flux+mass_tmp_stress*soilF*3600.*time_int 
                 endif
+              
     	endif
         !******************************************************************	
 
