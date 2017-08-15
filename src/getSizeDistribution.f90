@@ -4,7 +4,7 @@ implicit none
 !***********************************************************************
 integer :: numberSpecies, typeSizeDistr
 real(8), dimension(0:numberSpecies-1):: inisize
-real(8), dimension(0:numberSpecies-1, 0:2):: inifrac
+real(8), dimension(0:numberSpecies-1, 0:3):: inifrac
 !***********************************************************************
 
 if(typeSizeDistr.eq.1) then
@@ -78,10 +78,11 @@ inifrac(11,2) = 1.430843e-01
 inifrac(12,2) = 9.538951e-02
 inifrac(13,2) = 1.430843e-01
 inifrac(14,2) = 2.066773e-01
+
 !************************************************************************
 
 elseif(typeSizeDistr.eq.2)then
-    !Particle size distribution according to Kok (2011) with equally spaced size bins
+    !Particle size distribution with equally spaced size bins
     inisize(0) = 0.2
     inisize(1) = 2.2
     inisize(2) = 4.2
@@ -93,22 +94,22 @@ elseif(typeSizeDistr.eq.2)then
     inisize(8) = 16.2
     inisize(9) = 18.2
 
-    inifrac(0,0) = 0.02
-    inifrac(1,0) = 0.05
-    inifrac(2,0) = 0.10
-    inifrac(3,0) = 0.13
-    inifrac(4,0) = 0.16
-    inifrac(5,0) = 0.16
-    inifrac(6,0) = 0.15
-    inifrac(7,0) = 0.11
-    inifrac(8,0) = 0.08
-    inifrac(9,0) = 0.04
+    inifrac(0,0) = 0.44!0.02
+    inifrac(1,0) = 0.13!0.05
+    inifrac(2,0) = 0.11!0.10
+    inifrac(3,0) = 0.10!0.13
+    inifrac(4,0) = 0.08!0.16
+    inifrac(5,0) = 0.06!0.16
+    inifrac(6,0) = 0.04!0.15
+    inifrac(7,0) = 0.02!0.11
+    inifrac(8,0) = 0.01!0.08
+    inifrac(9,0) = 0.01!0.04
     
     inifrac(:,1)=inifrac(:,0)
     inifrac(:,2)=inifrac(:,0)
 
 elseif(typeSizeDistr.eq.3)then
-    !Particle size distribution according to Kok (2011) with more smaller size bins and less larger bins
+    !Particle size distribution with more smaller size bins and less larger bins
     inisize(0) = 0.2
     inisize(1) = 0.5
     inisize(2) = 1.0
@@ -120,16 +121,16 @@ elseif(typeSizeDistr.eq.3)then
     inisize(8) = 15.0
     inisize(9) = 20.0
     
-    inifrac(0,0) = 0.0065
-    inifrac(1,0) = 0.0164
-    inifrac(2,0) = 0.0327
-    inifrac(3,0) = 0.0491
-    inifrac(4,0) = 0.0820
-    inifrac(5,0) = 0.1607
-    inifrac(6,0) = 0.2292
-    inifrac(7,0) = 0.2375
-    inifrac(8,0) = 0.1518
-    inifrac(9,0) = 0.0341
+    inifrac(0,0) = 0.03!0.0065
+    inifrac(1,0) = 0.03!0.0164
+    inifrac(2,0) = 0.05!0.0327
+    inifrac(3,0) = 0.04!0.0491
+    inifrac(4,0) = 0.09!0.0820
+    inifrac(5,0) = 0.24!0.1607
+    inifrac(6,0) = 0.23!0.2292
+    inifrac(7,0) = 0.16!0.2375
+    inifrac(8,0) = 0.10!0.1518
+    inifrac(9,0) = 0.02!0.0341
       
     inifrac(:,1)=inifrac(:,0)
     inifrac(:,2)=inifrac(:,0)

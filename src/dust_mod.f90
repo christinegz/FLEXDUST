@@ -8,8 +8,8 @@ module dust_mod
     
     !Windfields and properties
     !***********************************************************************
-    character(*), parameter    :: ECMWF_input='/xnilu_wrk/flex_wrk/WIND_FIELDS/ECMWF/GLOBAL/OPER_fields_CLOUDS/AVAILABLE_CWC' !FLEXPART AVAILABLE file for global wind field
-    character(*), parameter    :: ECMWF_input_nest= '/xnilu_wrk/flex_wrk/flexpart/EYJA/AVAILABLE_ECMWF_EYJA' !FLEXPART AVAILABLE file for nested wind field
+    character(*), parameter    :: ECMWF_input='/home/christine/AVAILABLE_ECMWF_OPER_fields_05_global' 
+	character(*), parameter    :: ECMWF_input_nest= '/home/christine/AVAILABLE_ECMWF_OPER_fields_05_global' !FLEXPART AVAILABLE file for nested wind field
     integer, parameter         :: numberOfNests = 0 !Number of nested wind fields, if more than 1 remember to change path and length! NOT tested....
     integer, parameter         :: time_step_wind = 3 !time step wind fields in hours, default 3
     !***********************************************************************
@@ -39,6 +39,16 @@ module dust_mod
                                                         !requires further changes in the source code if other fields are used! 
                                                         !(Adjust code for bare land and possibly soil fraction calculation.)
     
+	!Iceland nest
+	character(*), parameter    :: landuse_file_n(1)= '../../Dusty/INPUT/Iceland_bareLand.bin'
+    logical, parameter         :: landuse_bin_fileType=.true. !true for ASCII already converted to binary with routine in readInput.f90
+    integer, parameter         :: nx_landuse_n(1)=39984, ny_landuse_n(1)= 11177
+    real, parameter            :: xlon0_n(1)=-24.708731621941, ylat0_n(1)=63.300009852139
+    real, parameter            :: dxdy_landuse_n(1)=0.00028783278362664!degr
+    integer, parameter         :: landuse_n_bare=3 !With what value is bare land indicated in the nested land use?
+    integer, parameter         :: landuse_n_altBare(1:2)=(/4,5/) !Alternative value that has limited soil availability, check code for details integer, dimension(0:nx_landuse_n(1)-1,0:ny_landuse_n(1)-1):: landuse_n
+
+	
     !Additional information on erosion classes for Iceland (Arnalds 2001)
     !***********************************************************************
     logical, parameter         :: applyClassErosion=.false.       !Change mobilization threshold depending on erosion class?
@@ -52,35 +62,35 @@ module dust_mod
     
     !Rtopo with sources Antarctic
     !***********************************************************************
-    character(*), parameter    :: landuse_file_n(1)= '../INPUT/RTopo_2_mask_Antarctic.bin'
-    logical, parameter         :: landuse_bin_fileType=.true. !true for ASCII already converted to binary with routine in readInput.f90
-    integer, parameter         :: nx_landuse_n(1)=21601, ny_landuse_n(1)= 1797
-    real, parameter            :: xlon0_n(1)=-180, ylat0_n(1)=-90
-    real, parameter            :: dxdy_landuse_n(1)=0.0167!degr
-    integer, parameter         :: landuse_n_bare=3 !With what value is bare land indicated in the nested land use?
-    integer, parameter         :: landuse_n_altBare(1:3)=(/4,4,4/) !Alternative value that has limited soil availability, check code for details
-    integer, dimension(0:nx_landuse_n(1)-1,0:ny_landuse_n(1)-1):: landuse_n
+    !character(*), parameter    :: landuse_file_n(1)= '../INPUT/RTopo_2_mask_Antarctic.bin'
+    !logical, parameter         :: landuse_bin_fileType=.true. !true for ASCII already converted to binary with routine in readInput.f90
+    !integer, parameter         :: nx_landuse_n(1)=21601, ny_landuse_n(1)= 1797
+    !real, parameter            :: xlon0_n(1)=-180, ylat0_n(1)=-90
+    !real, parameter            :: dxdy_landuse_n(1)=0.0167!degr
+    !integer, parameter         :: landuse_n_bare=3 !With what value is bare land indicated in the nested land use?
+    !integer, parameter         :: landuse_n_altBare(1:3)=(/4,4,4/) !Alternative value that has limited soil availability, check code for details
+    !integer, dimension(0:nx_landuse_n(1)-1,0:ny_landuse_n(1)-1):: landuse_n
     !*************************************************************************
        
     !Output files/settings
     !***********************************************************************
     !output time frame
-    integer, parameter          :: start_date_day  = 20120221!20120101
+    integer, parameter          :: start_date_day  = 20160101
     integer, parameter          :: start_date_hour = 000000
-    integer, parameter          :: time_step	  = 12
-    real, parameter             :: releaseDays	  = 22
+    integer, parameter          :: time_step	  = 3
+    real, parameter             :: releaseDays	  = 6
     !***********************************************************************
     
     !output grid
     !***********************************************************************
     character(*),parameter      :: output_directory  = '../output/'
-    real, parameter             :: lat_bottom        = -13
-    real, parameter             :: lon_left          = -100
+    real, parameter             :: lat_bottom        = -90
+    real, parameter             :: lon_left          = -179
     real, parameter             :: dx_dy_out         = 0.5  !resolution of emission calculation in degree
-    integer, parameter          :: release_dxdy_step = 4    !Interval of x and y in which release file should be written 
+    integer, parameter          :: release_dxdy_step = 1    !Interval of x and y in which release file should be written 
                                                             !(2 means that calculated emission of 4 grid cells with resolution dx_dy_out will be combined in 1 FLEXPART release)
-    integer, parameter          :: ny_lat_out        = 48/dx_dy_out!180/dx_dy_out!5/dx_dy_out
-    integer, parameter          :: nx_lon_out        = 150/dx_dy_out!360/dx_dy_out!14/dx_dy_out
+    integer, parameter          :: ny_lat_out        = 180/dx_dy_out!180/dx_dy_out!5/dx_dy_out
+    integer, parameter          :: nx_lon_out        = 360/dx_dy_out!360/dx_dy_out!14/dx_dy_out
     !***********************************************************************
     
     !Output files
@@ -92,7 +102,7 @@ module dust_mod
     !Switches output
     !***********************************************************************
     logical, parameter          :: RELEASEFILE=.true.       !Write a FLEXPART release file
-    logical, parameter          :: writeGridEmission=.true. !For each output time step, write a grid with emission (kg), 
+    logical, parameter          :: writeGridEmission=.false. !For each output time step, write a grid with emission flux (kg m-2), 
                                                             !practical for splitting in regions and doing FLEXPART simulations with changing number of particles
     !***********************************************************************
     
@@ -105,7 +115,7 @@ module dust_mod
     real*8, parameter           :: scalingFactor = 4.8e-4    !Default value 4.8e-4 for emissionModel 2
     integer, parameter          :: emissionModel = 2         !Choose from several emission Models (1: HSO, 2:MB95, 3:Kok et al. 2014), default and tested: 2
     real, parameter             :: snowLimit =0.01           !From which snow amount should mobilization not be possible?
-    real, parameter             :: minMassWrite=50.0         !Minimum emission (kg) for which to write a release
+    real, parameter             :: minMassWrite=10.0         !Minimum emission (kg) for which to write a release > change depending on wanted resolution
     !***********************************************************************
     
     !Switches model

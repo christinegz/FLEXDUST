@@ -19,9 +19,9 @@ real 				:: lat_out, lon_out
 !*************************************************************************************************
 real                            :: frictVelThres, shearStressThres
 real(kind=dp)                   :: juldate, start_date, start_date_available, end_date
-integer 			:: tot_sec, tot_sec_end, nstop, tmp_day, tmp_hour, time_wind_field
+integer 			            :: tot_sec, tot_sec_end, nstop, tmp_day, tmp_hour, time_wind_field
 integer                         :: totalParticles, ix_ll, ix_ur, iy_ll, iy_ur, dummy_int
-real				:: snow, tmp_tot_emission, totalEmission
+real            				:: snow, tmp_tot_emission, totalEmission
 character(len=200)              :: grid_filename
 character(len=200)              :: tmp
 character(len=100)              :: release_file
@@ -34,15 +34,15 @@ logical,dimension(:,:), allocatable :: inLU_n, inClayGrid,  inClassErosion
 integer,dimension(:,:),allocatable  :: ix_lu_n, iy_lu_n
 INTEGER                             :: ALLOC_ERR
 integer(kind=1)                     :: landinventory_global(0:nx_landuse-1,0:ny_landuse-1)
-integer            		    :: landinventory_n(0:nx_landuse_n(1)-1,0:ny_landuse_n(1)-1)
+integer            	        	    :: landinventory_n(0:nx_landuse_n(1)-1,0:ny_landuse_n(1)-1)
 !*************************************************************************************************
 
 !Set some variables used in the code to read files copied from FLEXPART
 !*************************************************************************************************
-numbnests                       = numberOfNests   
+numbnests           = numberOfNests   
 ldirect				= 1
 path(4) 			= ECMWF_input
-path(6)                         = ECMWF_input_nest  
+path(6)             = ECMWF_input_nest  
 length(4)			= index(path(4),' ')-1
 length(6)			= index(path(6),' ')-1
 start_date			= juldate(start_date_day, start_date_hour)
@@ -344,8 +344,8 @@ do while(tot_sec.lt.tot_sec_end)
         if (writeGridEmission)then
             call caldate(start_date + real(tot_sec)/(3600. * 24.), tmp_day, tmp_hour)
             write(tmp, '(I8I06.6)') tmp_day, tmp_hour
-            grid_filename = output_directory // 'DustEmission_' // trim(tmp) // '.bin'
-            call writeGridBin(grid_filename, emission_mass, nx_lon_out, ny_lat_out)
+            grid_filename = output_directory // 'DustEmissionFlux_' // trim(tmp) // '.bin'
+            call writeGridBin(grid_filename, emission_flux, nx_lon_out, ny_lat_out)
         endif
         !************************************************************************
         
