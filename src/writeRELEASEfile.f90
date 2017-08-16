@@ -58,7 +58,6 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
         startSpecies = 401
     endif
 
-    print*, 'CGZ, sie distr, number species', typeSizeDistr, numberSpecies
     !allocate size & fraction arrays
     !***********************************************************************
     allocate(inisize(0:numberSpecies - 1), STAT = ALLOC_ERR)
