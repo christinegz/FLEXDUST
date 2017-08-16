@@ -97,8 +97,8 @@ module dust_mod
     !output time frame
     integer, parameter          :: start_date_day  = 20160101
     integer, parameter          :: start_date_hour = 000000
-    integer, parameter          :: time_step	  = 3
-    real, parameter             :: releaseDays	  = 6
+    integer, parameter          :: time_step	  = 6
+    real, parameter             :: releaseDays	  = 120
     !***********************************************************************
     
     !output grid
@@ -107,10 +107,10 @@ module dust_mod
     real, parameter             :: lat_bottom        = -90
     real, parameter             :: lon_left          = -179
     real, parameter             :: dx_dy_out         = 0.5  !resolution of emission calculation in degree
-    integer, parameter          :: release_dxdy_step = 1    !Interval of x and y in which release file should be written 
+    integer, parameter          :: release_dxdy_step = 3    !Interval of x and y in which release file should be written 
                                                             !(2 means that calculated emission of 4 grid cells with resolution dx_dy_out will be combined in 1 FLEXPART release)
     integer, parameter          :: ny_lat_out        = 180/dx_dy_out!180/dx_dy_out!5/dx_dy_out
-    integer, parameter          :: nx_lon_out        = 360/dx_dy_out!360/dx_dy_out!14/dx_dy_out
+    integer, parameter          :: nx_lon_out        = 359.5/dx_dy_out!360/dx_dy_out!14/dx_dy_out
     !***********************************************************************
     
     !Output files

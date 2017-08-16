@@ -359,6 +359,7 @@ subroutine gridcheck
     do jy=0,ny-1
       do ix=0,nxfield-1
         oro(ix,jy)=zsec4(nxfield*(ny-jy-1)+ix+1)/ga
+       ! print*, 'CGZ nxmax:', nxmax
       end do
     end do
   endif

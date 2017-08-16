@@ -1,5 +1,5 @@
 SHELL = /bin/bash
-MAIN = FLEXDUST_Iceland
+MAIN = FLEXDUST
 
 FC       = gfortran
 INCPATH  = /xnilu_wrk/flex_wrk/bin64/grib_api/include
