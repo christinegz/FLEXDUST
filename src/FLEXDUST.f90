@@ -35,7 +35,7 @@ real 				:: lat_out, lon_out
 !*************************************************************************************************
 real                            :: frictVelThres, shearStressThres
 real(kind=dp)                   :: juldate, start_date, start_date_available, end_date
-integer 			            :: tot_sec, tot_sec_end, nstop, tmp_day, tmp_hour, time_wind_field
+integer 			            :: tot_sec, tot_sec_end, nstop, tmp_day, tmp_hour, time_wind_field, step_nc
 integer                         :: totalParticles, ix_ll, ix_ur, iy_ll, iy_ur, dummy_int
 real            				:: snow, tmp_tot_emission, totalEmission
 character(len=200)              :: grid_filename
@@ -51,6 +51,8 @@ integer,dimension(:,:),allocatable  :: ix_lu_n, iy_lu_n
 INTEGER                             :: ALLOC_ERR
 integer(kind=1)                     :: landinventory_global(0:nx_landuse-1,0:ny_landuse-1)
 integer            	        	    :: landinventory_n(0:nx_landuse_n(1)-1,0:ny_landuse_n(1)-1)
+real,dimension(:), allocatable   :: lons, lats
+
 !*************************************************************************************************
 
 !Set some variables used in the code to read files copied from FLEXPART
@@ -69,6 +71,12 @@ ideltas				= nint((end_date-start_date)*86400.)
 
 !Initialize the output grids
 !*************************************************************************************************
+allocate(lons(0:nx_lon_out-1), STAT=ALLOC_ERR)
+IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
+
+allocate(lats(0:ny_lat_out-1), STAT=ALLOC_ERR)
+IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
+
 allocate(emission_mass(0:nx_lon_out-1,0:ny_lat_out-1), STAT=ALLOC_ERR)
 IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
 
@@ -195,7 +203,7 @@ totalEmission=0
 totalParticles=0
 cum_emission(:,:)=0
 precipitation(:,:,:)=0
-
+step_nc=0
 do while(tot_sec.lt.tot_sec_end)
         write(*,*) 'Currently at ' ,tot_sec, ' (sec) out of total:', tot_sec_end
 	
@@ -229,7 +237,7 @@ do while(tot_sec.lt.tot_sec_end)
                 print*, 'Total vegetation cover high/low:', sum(sum(cvh(:,:, 1, 1), 2), 1), sum(sum(cvl(:,:, 1, 1), 2), 1)
                 print*, 'Total soil moisture:', sum(sum(svw(:,:, 1, 1), 2), 1)
                 print*, 'Total precipitation:', sum(sum(lsprec(:,:, 1, 1), 2), 1), sum(sum(convprec(:,:, 1, 1), 2), 1)
-                call writeGrid(output_directory//'Soil_fraction.dat',soilFraction,nx_lon_out, ny_lat_out)
+                !call writeGrid(output_directory//'Soil_fraction.dat',soilFraction,nx_lon_out, ny_lat_out)
             endif
             !*************************************************************
  
@@ -240,8 +248,17 @@ do while(tot_sec.lt.tot_sec_end)
                     
                     !Calculate coordinates and catch coordinates outside grid
                     !********************************************************
-                    lat_out=lat_bottom+iy*dx_dy_out
-                    lon_out=lon_left+ix*dx_dy_out                    
+                    if (tot_sec .eq. 0) then
+                        lats(iy)=lat_bottom+iy*dx_dy_out
+                        lons(ix)=lon_left+ix*dx_dy_out
+
+                        if(lons(ix).gt. 180.) lons(ix)= lons(ix)-360.
+                        if(lons(ix).lt. -180.) lons(ix)= lons(ix)+360.
+
+                    endif
+                    lat_out=lats(iy)
+                    lon_out=lons(ix)
+                    
                     if(lat_out.lt.-90 .or. lat_out.gt.90 .or. lon_out.lt.-180 .or. lon_out.gt.180)then
                         write(*,*) 'Incorrect latitude or longitude', lon_out, lat_out
                         stop
@@ -263,11 +280,11 @@ do while(tot_sec.lt.tot_sec_end)
                         !scale erodibility in this area
                         call getErodibility(erodibility(ix,iy), ix_wind(ix), iy_wind(iy), ix_ll, ix_ur, iy_ll, iy_ur)
                         soilFraction(ix,iy)=soilFraction(ix,iy)*erodibility(ix,iy)
-                        !Store soil fraction grid when finished
-                        if(iy.eq.ny_lat_out-1 .and. ix.eq.nx_lon_out-1)then
-                            print*,'Write a soil fraction grid for inspection'
-                           call writeGrid(output_directory//'Soil_fraction_topo.dat',soilFraction,nx_lon_out, ny_lat_out)
-                        endif
+                        !Store soil fraction grid when finished > now only save in netcdf
+                        !if(iy.eq.ny_lat_out-1 .and. ix.eq.nx_lon_out-1)then
+                        !    print*,'Write a soil fraction grid for inspection'
+                        !   call writeGrid(output_directory//'Soil_fraction_topo.dat',soilFraction,nx_lon_out, ny_lat_out)
+                        !endif
                     endif
                     !********************************************************
                     snow=0.
@@ -358,13 +375,26 @@ do while(tot_sec.lt.tot_sec_end)
 	!Write the dust emission for this time step as a grid in a binary file
         !************************************************************************
         if (writeGridEmission)then
-            call caldate(start_date + real(tot_sec)/(3600. * 24.), tmp_day, tmp_hour)
-            write(tmp, '(I8I06.6)') tmp_day, tmp_hour
-            grid_filename = output_directory // 'DustEmissionFlux_' // trim(tmp) // '.bin'
-            call writeGridBin(grid_filename, emission_flux, nx_lon_out, ny_lat_out)
-        endif
-        !************************************************************************
+
+            !Old binary format:
+            !grid_filename = output_directory // 'DustEmissionFlux_' // trim(tmp) // '.bin'
+            !call writeGridBin(grid_filename, emission_flux, nx_lon_out, ny_lat_out)
+            !call caldate(start_date + real(tot_sec)/(3600. * 24.), tmp_day, tmp_hour)
+            !write(tmp, '(I8I06.6)') tmp_day, tmp_hour
         
+            !Switch to netCDF output
+            if(tot_sec.eq.0)then
+                !Initialize netcdf file
+                call netCDF_prepareEmission(nc_file_out, lons, lats)
+                !Save bare soil fraction in netcdf out
+                call netCDF_write_grid(nc_file_out, "soil", soilFraction)
+
+            endif
+            call netCDF_writeEmission(nc_file_out, emission_flux,tot_sec,step_nc)
+         endif
+        !************************************************************************
+
+
         !Write the dust emission for this time step in a RELEASE file for FLEXPART
 	!************************************************************************
         if(RELEASEFILE)then
@@ -389,6 +419,7 @@ do while(tot_sec.lt.tot_sec_end)
 	!Advance time step
 	!************************************************************************
 	tot_sec=tot_sec+real(time_step)*3600.
+     step_nc= step_nc+1
 	!************************************************************************
 end do
 
@@ -396,9 +427,10 @@ end do
 DEALLOCATE(emission_mass, STAT = ALLOC_ERR)
 
 !Save cumulative dust emission flux field
-grid_filename = output_directory // 'CumEmissionFlux.bin'
-call writeGridBin(grid_filename, cum_emission, nx_lon_out, ny_lat_out)
-            
+!grid_filename = output_directory // 'CumEmissionFlux.bin'
+!call writeGridBin(grid_filename, cum_emission, nx_lon_out, ny_lat_out)
+call netCDF_write_grid(nc_file_out, "cum_emission", cum_emission)
+
 write(*,*) 'Finsihed FLEXDUST simulation, total mass of emitted mineral dust:', totalEmission, ' kg , # of particles:', &
 totalParticles
 

@@ -74,7 +74,149 @@ subroutine writeGridBin(grid_filename, grid, nx_grid, ny_grid)
     !***************************************************************
     close(fileunit)
 
-end subroutine writeGridBin
+ end subroutine writeGridBin
+
+subroutine ncdf_handle_error(status)
+       use netcdf
+        
+       integer status 
+
+       write(*,*) "******* Fatal NETCDF error *******"
+       write(*,*) trim(NF90_strerror(status))
+       write(*,*) "*************** RIP **************" 
+       stop
+
+end subroutine ncdf_handle_error
+
+subroutine check(status)
+use netcdf
+    integer, intent ( in) :: status
+    !print*, 'Check standard '
+    if(status /= nf90_noerr) then 
+      print *, trim(nf90_strerror(status))
+      stop "Stopped"
+    end if
+end subroutine check  
+
+
+subroutine netCDF_prepareEmission(grid_filename, lons, lats)
+     !Initialize a netCDF-file for emission fields
+     use dust_mod
+     use netcdf
+     implicit none
+
+     character(*) :: grid_filename
+     character(80):: str_time
+     integer      :: nc_id, status
+     !from flexpart ctm
+     integer :: londim_id, latdim_id, timedim_id,lonvar_id, latvar_id, timevar_id,emitvar_id
+     integer :: soil_id, tot_em_id
+     integer :: singdim_id, hourvar_id,dayvar_id
+     !Some vars for standard netcdf example
+     integer, parameter :: NDIMS = 2
+     integer, parameter :: NX = 6, NY = 12
+     integer :: x_dimid, y_dimid, varid, dimids(NDIMS)
+    ! integer :: data_out(NY, NX)
+    ! integer :: x, y
+     real, dimension(0:nx_lon_out-1) :: lons
+     real, dimension(0:ny_lat_out-1) :: lats
+     real, dimension( int(releaseDays*24/time_step)) :: dates
+!  ! Example
+!  do x = 1, NX
+!     do y = 1, NY
+!        data_out(y, x) = (x - 1) * NY + (y - 1)
+!     end do
+!  end do
+
+
+     call check(nf90_create(trim(grid_filename), cmode = NF90_HDF5, ncid = nc_id) )
+     
+     !Define dimensions
+     call check(NF90_DEF_DIM(nc_id, "val", 1, singdim_id))
+     call check(NF90_DEF_DIM(nc_id, "lon", nx_lon_out, londim_id))
+     call check(NF90_DEF_DIM(nc_id, "lat", ny_lat_out, latdim_id))
+     call check(NF90_DEF_DIM(nc_id, "time", int(releaseDays*24/time_step) , timedim_id))
+
+     !Define variables
+     !   status=NF90_DEF_VAR(nc_id,"lon",NF90_FLOAT, (/ londim_id /), lonvar_id)
+     call check(nf90_def_var(nc_id, "startdate", nf90_int, (/ singdim_id /), dayvar_id))
+     call check(nf90_def_var(nc_id, "starthour", nf90_int, (/ singdim_id /), hourvar_id))
+     call check(nf90_def_var(nc_id, "lon", nf90_float, (/ londim_id /), lonvar_id))
+     call check(nf90_def_var(nc_id, "lat", nf90_float, (/ latdim_id /), latvar_id))
+     call check(nf90_def_var(nc_id, "Date", nf90_int, (/ timedim_id /), timevar_id))
+     call check(nf90_def_var(nc_id, "Emission", nf90_float, (/londim_id,latdim_id,timedim_id /), emitvar_id))
+     call check(nf90_def_var(nc_id, "cum_emission", nf90_float, (/londim_id,latdim_id/), tot_em_id))
+     call check(nf90_def_var(nc_id, "soil", nf90_float, (/londim_id,latdim_id/), soil_id))
+
+    !Attributes
+    call check(NF90_PUT_ATT(nc_id, lonvar_id, "units", "degrees"))
+    call check(NF90_PUT_ATT(nc_id, lonvar_id, "standard_name", "longitude"))
+    call check(NF90_PUT_ATT(nc_id, lonvar_id, "description", "lower bound of grid cell"))
+    call check(NF90_PUT_ATT(nc_id, latvar_id, "units", "degrees"))
+    call check(NF90_PUT_ATT(nc_id, latvar_id, "standard_name", "latitude"))
+    write(str_time, *) "Seconds since ", start_date_day, "-", start_date_hour
+    call check(NF90_PUT_ATT(nc_id, timevar_id, "units", trim(str_time)))
+    call check(NF90_PUT_ATT(nc_id, timevar_id, "standard_name", "Date"))
+    call check(NF90_PUT_ATT(nc_id, emitvar_id, "units", "kg/m2"))
+    call check(NF90_PUT_ATT(nc_id, emitvar_id, "standard_name", "Emission"))
+    call check(NF90_PUT_ATT(nc_id, emitvar_id, "units", "kg/m2"))
+    call check(NF90_PUT_ATT(nc_id, tot_em_id, "standard_name", "Simulated total dust emission"))
+    call check(NF90_PUT_ATT(nc_id, soil_id, "standard_name", "Bare soil fraction"))
+    call check(NF90_PUT_ATT(nc_id, dayvar_id, "standard_name", "Startdate of simulation"))
+
+    !Finished defining
+     call check( nf90_enddef(nc_id) )
+
+     !Save data to variables
+     call check( nf90_put_var(nc_id, dayvar_id, start_date_day) )
+     call check( nf90_put_var(nc_id, hourvar_id, start_date_hour) )
+     call check( nf90_put_var(nc_id, lonvar_id, lons) )
+     call check( nf90_put_var(nc_id, latvar_id, lats) )
+
+    print*, "prepared netcd and added longitude"
+     call check( nf90_close(nc_id) )
+end subroutine netCDF_prepareEmission
+
+ subroutine netCDF_writeEmission(grid_filename, grid, time, i)
+     use dust_mod
+     use netcdf
+     implicit none
+
+     character(*) :: grid_filename
+     integer :: i, ncid,VarId_date, VarId_em, time
+     real, dimension(0:nx_lon_out-1, 0:ny_lat_out-1) :: grid
+
+     call check (nf90_open(grid_filename, nf90_Write, ncid))
+     !Get id number
+     call check (nf90_inq_varid(ncid, "Date", VarId_date))
+     call check (nf90_inq_varid(ncid, "Emission", VarId_em))
+
+     call check( nf90_put_var(ncid, VarId_date,time, (/i+1/)))
+     call check( nf90_put_var(ncid, VarId_em,grid, (/1,1,i+1/)))
+
+     call check( nf90_close(ncid) )
+
+ end subroutine netCDF_writeEmission
+
+subroutine netCDF_write_grid(grid_filename, var_name, grid)
+     use dust_mod
+     use netcdf
+     implicit none
+
+     character(*) :: grid_filename, var_name
+     integer :: i, ncid,VarId_date, VarId_em, time
+     real, dimension(0:nx_lon_out-1, 0:ny_lat_out-1) :: grid
+
+     call check (nf90_open(grid_filename, nf90_Write, ncid))
+     !Get id number
+     call check (nf90_inq_varid(ncid, var_name, VarId_em))
+     !Write field
+     call check( nf90_put_var(ncid, VarId_em,grid, (/1,1/)))
+
+     call check( nf90_close(ncid) )
+
+ end subroutine netCDF_write_grid
+
 
 subroutine writeGridInteger(grid_filename, grid, nx_grid, ny_grid)
     !writeGrid: a subroutine to write a grid of size (nx_landuse, ny_landuse) to grid_filename (simple txt file, mostly for debugging)
@@ -304,6 +446,11 @@ subroutine getGridPoints(ix_lu, iy_lu, inLU_n, ix_lu_n, iy_lu_n, ix_wind, iy_win
 
             lat_out = lat_bottom + iy * dx_dy_out
             lon_out = lon_left + ix * dx_dy_out
+
+            !Landuse and soil files cover area -180 to 180 lon, wind fields start at -179. 
+            !Wind field routine can handle longitudes larger than 180, other subroutines not, therefore change lon_out here if necessary
+            if(lon_out .gt. 180.) lon_out= lon_out-360.
+            if(lon_out .lt. -180.) lon_out= lon_out+360.
 
             !Determine position of output point in the several available grids
             call getGridPointLandUse(lat_out, lon_out, ix_lu(ix), iy_lu(iy), dxdy_degr_landuse)

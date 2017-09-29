@@ -248,11 +248,12 @@ subroutine readwind(indj,n,uuh,vvh,wwh)
   elseif ((parCat.eq.128).and.(parNum.eq.28)) then ! CVH
      isec1(6)=28         ! indicatorOfParameter
     else
-      print*,'***WARNING: undefined GRiB2 message found!',discipl, &
-           parCat,parNum,typSurf
+    ! cgz: removed warning
+  !    print*,'***WARNING: undefined GRiB2 message found!',discipl, &
+  !         parCat,parNum,typSurf
     endif
     if(parId .ne. isec1(6) .and. parId .ne. 77) then
-      write(*,*) 'parId',parId, 'isec1(6)',isec1(6)
+  !    write(*,*) 'parId',parId, 'isec1(6)',isec1(6)
 !    stop
     endif
 
@@ -393,21 +394,23 @@ subroutine readwind(indj,n,uuh,vvh,wwh)
 !ZHG READING CLOUD FIELDS ASWELL
 ! ESO TODO: add check for if one of clwc/ciwc missing (error),
 ! also if all 3 cw fields present, use qc and disregard the others
-      if(isec1(6).eq.246) then  !! CLWC  Cloud liquid water content [kg/kg]
-        clwch(i,j,nlev_ec-k+2,n)=zsec4(nxfield*(ny-j-1)+i+1)
-        readclouds=.true.
-        sumclouds=.false.
-      endif
-      if(isec1(6).eq.247) then  !! CIWC  Cloud ice water content
-        ciwch(i,j,nlev_ec-k+2,n)=zsec4(nxfield*(ny-j-1)+i+1)
-      endif
-!ZHG end
-!ESO read qc (=clwc+ciwc)
-      if(isec1(6).eq.201031) then  !! QC  Cloud liquid water content [kg/kg]
-        clwch(i,j,nlev_ec-k+2,n)=zsec4(nxfield*(ny-j-1)+i+1)
-        readclouds=.true.
-        sumclouds=.true.
-      endif
+
+!CGZ 20170915 > skip this, not needed for flexdust
+!       if(isec1(6).eq.246) then  !! CLWC  Cloud liquid water content [kg/kg]
+!         clwch(i,j,nlev_ec-k+2,n)=zsec4(nxfield*(ny-j-1)+i+1)
+!         readclouds=.true.
+!         sumclouds=.false.
+!       endif
+!       if(isec1(6).eq.247) then  !! CIWC  Cloud ice water content
+!         ciwch(i,j,nlev_ec-k+2,n)=zsec4(nxfield*(ny-j-1)+i+1)
+!       endif
+! !ZHG end
+! !ESO read qc (=clwc+ciwc)
+!       if(isec1(6).eq.201031) then  !! QC  Cloud liquid water content [kg/kg]
+!         clwch(i,j,nlev_ec-k+2,n)=zsec4(nxfield*(ny-j-1)+i+1)
+!         readclouds=.true.
+!         sumclouds=.true.
+!       endif
 
     end do
   end do
