@@ -26,7 +26,8 @@ use com_mod
 
 implicit none
 
-real     :: mfac, em, soilF, lat, scalingFactor, mass, mflux, mobilisationThreshold, vel, dxdy_degr_landuse
+real     :: mfac, em,  lat, scalingFactor, mass, mflux, mobilisationThreshold, vel, dxdy_degr_landuse
+real     :: soilF
 integer  :: ix_wind, iy_wind,  ix_wind_n, iy_wind_n, time_step, inNestNr
 
         !Calculate velocity (vel) from 10 m u- and v-component of the wind.

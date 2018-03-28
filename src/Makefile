@@ -1,12 +1,21 @@
 SHELL = /bin/bash
 MAIN = FLEXDUST
 
-FC       = gfortran
-INCPATH  = /xnilu_wrk/flex_wrk/bin64/grib_api/include
-LIBPATH1 = /xnilu_wrk/flex_wrk/bin64/grib_api/lib
-LIBPATH2 =   /usr/lib/x86_64-linux-gnu/
-FFLAGS   =    -O3 -Wunused -fbounds-check -m64 -ffree-form -mcmodel=medium -fconvert=little-endian -frecord-marker=4 -I$(INCPATH)
-LDFLAGS  = $(FFLAGS) -L$(LIBPATH2) -L$(LIBPATH1) -lgrib_api_f90 -lgrib_api -lm -ljasper
+FC       = /usr/bin/gfortran
+#INCPATH  = /xnilu_wrk/flex_wrk/bin64/grib_api/include
+INCPATH1 = /usr/include
+INCPATH_NCDF =  /homevip/flexpart/gcc-5.4.0/include
+#/usr/include
+#LIBPATH1 = /xnilu_wrk/flex_wrk/bin64/grib_api/lib/
+LIBPATH1 = /homevip/flexpart/gcc-5.4.0/lib
+#/usr/lib/x86_64-linux-gnu/ 
+#/homevip/flexpart/gcc-5.4.0/lib
+#LIBPATH2 =   /usr/lib/x86_64-linux-gnu/
+FFLAGS   =   -I$(INCPATH1) -I$(INCPATH_NCDF) -Wunused -fbounds-check -cpp -m64 -ffree-form -mcmodel=medium -fconvert=little-endian -frecord-marker=4 
+#FFLAGS   =   -I$(INCPATH1) -I$(INCPATH_NCDF) -g -mcmodel=medium -fbounds-check -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=zero,overflow,underflow -finit-real=nan
+LDFLAGS  = $(FFLAGS)  -L$(LIBPATH1) -lgrib_api_f90 -lgrib_api -lm -ljasper -lnetcdff
+#-lnetcdff
+#-L$(LIBPATH2)
 
 
 MODOBJS = \

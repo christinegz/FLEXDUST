@@ -123,7 +123,8 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
     integer :: ix_lu(0:nx_lon_out), ix_wind(0:nx_lon_out)
     integer :: iy_lu(0:ny_lat_out), iy_wind(0:ny_lat_out)
     real :: vegetationECMWF(0:nx-1, 0:ny-1)
-    real :: gridSum, vegFrac
+    real*8 :: gridSum
+    real :: vegFrac
     integer :: count, i, j
     integer(kind = 1) :: landinventory_global(0:nx_landuse - 1, 0:ny_landuse - 1)
     integer :: landinventory_n(0:nx_landuse_n(1) - 1, 0:ny_landuse_n(1) - 1)
@@ -142,8 +143,7 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
         useVEG2010=.true.
     endif
     !**************************************************************
-    
-    soilFraction(:,:) = 0.
+    soilFraction(:,:) = 0.D0
     !Loop through output grid
     !**************************************************************
     do iy = 0, ny_lat_out - 2
@@ -151,16 +151,15 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
 
             !reset for new point
             !**************************************************
-            gridSum = 0;
-            vegFrac = 0;
+            gridSum = 0.D0;
+            vegFrac = 0.;
             count = 0;
             city = .false.;
 
-            !Make a grid with soil fraction from global landuse > only valid for GLCNMO land cover data
+            !Make a grid with soil fraction from global landuse > only valid for GLCNMO land cover data!!
             !**************************************************
             do j = iy_lu(iy), min(iy_lu(iy + 1), ny_landuse - 1)
                 do i = ix_lu(ix), min(ix_lu(ix + 1), nx_landuse - 1)
-
                     if (landinventory_global(i, j) .eq. 17)then
                         !bare land - sand
                         gridSum = gridSum + 1.0
@@ -195,16 +194,22 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
             
             !Checked all land use grid points for single FLEXDUST output grid point > get mean soilFraction
             !***********************************************************
+            if( gridSum .gt. 1.)then
             soilFraction(ix, iy) = gridSum/count
-            
+            endif
+            !if(soilFraction(ix,iy).gt. 1e-8)then
+            !    print*, 'soil fraction:',soilFraction(ix, iy), gridSum, count
+            !    print*, landinventory_global(ix_lu(ix):ix_lu(ix + 1),iy_lu(iy):iy_lu(iy + 1))
+            !endif
             !Overwrite the area where a nested landuse grid is available > only applicable for sandy desert data Iceland
             !************************************************************************************************
             if (inLU_n(ix, iy))then
                 count = 0
                 gridSum = 0
+                !print*, ix, iy, iy_lu_n(iy, 1), ix_lu_n(ix, 1)
+
                 do j = iy_lu_n(iy, 1), min(iy_lu_n(iy + 1, 1), ny_landuse_n(1) - 1)
                     do i = ix_lu_n(ix, 1), min(ix_lu_n(ix + 1, 1), nx_landuse_n(1) - 1)
-
                             if (landinventory_n(i, j) .eq. landuse_n_bare)then
                                 !Iceland:Sand & pumice
                                 gridSum = gridSum + 0.95
@@ -220,6 +225,7 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
                     end do
                 end do
                 soilFraction(ix, iy) = gridSum/max(count, 1)
+                !print*, 'Soil fraction: ', soilFraction(ix, iy) 
 
                 if(city)then
                     !In the global landuse file there is urban landcover, which is not represented in Nytjaland. Correct the soil factor to 0.
@@ -230,5 +236,4 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
             !********************************************         
         end do
     end do
-
 end subroutine getSoilFromLU

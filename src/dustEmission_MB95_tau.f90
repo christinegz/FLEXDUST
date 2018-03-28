@@ -26,7 +26,7 @@ use com_mod
 
 implicit none
 
-real     :: mfac, em_mass, soilF, lat,  dxdy_degr, em_flux
+real     :: mfac, em_mass, lat,  dxdy_degr, em_flux, soilF
 real*8   :: scalingFactor
 real     :: u_star_local, rho_air, eta, f_clay_tmp, f_clay, stress_local
 real     :: shearStressThres ! Threshold shear stress

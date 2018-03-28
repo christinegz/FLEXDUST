@@ -41,7 +41,8 @@ real            				:: snow, tmp_tot_emission, totalEmission
 character(len=200)              :: grid_filename
 character(len=200)              :: tmp
 character(len=100)              :: release_file
-real,dimension(:,:), allocatable    :: emission_mass(:,:),emission_flux(:,:),soilFraction(:,:), soilMoisture(:,:), cum_emission(:,:)
+real,dimension(:,:), allocatable    :: soilFraction(:,:)
+real,dimension(:,:), allocatable    :: emission_mass(:,:),emission_flux(:,:), soilMoisture(:,:), cum_emission(:,:)
 real,dimension(:,:), allocatable    :: outputField(:,:), erodibility(:,:)
 real,dimension(:,:,:), allocatable  :: precipitation
 integer,dimension(:,:), allocatable :: inNestNr,  ix_wind_n, iy_wind_n, landcovertype
@@ -192,7 +193,6 @@ if(numbnests.gt.0) call gridcheck_nests()
 !*************************************************************************************************
 call getGridPoints(ix_lu,iy_lu,inLU_n,ix_lu_n,iy_lu_n,ix_wind,iy_wind,inClayGrid,ix_clay,iy_clay,&
     inNestNr,ix_wind_n,iy_wind_n,inClassErosion, ix_erClass,iy_erClass)
- 
 !*************************************************************************************************
 !Loop through wind fields and get emission data for each time step and each point
 !*************************************************************************************************
@@ -279,6 +279,7 @@ do while(tot_sec.lt.tot_sec_end)
                         call getGridPointWind(lat_out+5., lon_out+5.,dummy_int, ix_ur, iy_ur,dummy_int,dummy_int)
                         !scale erodibility in this area
                         call getErodibility(erodibility(ix,iy), ix_wind(ix), iy_wind(iy), ix_ll, ix_ur, iy_ll, iy_ur)
+
                         soilFraction(ix,iy)=soilFraction(ix,iy)*erodibility(ix,iy)
                         !Store soil fraction grid when finished > now only save in netcdf
                         !if(iy.eq.ny_lat_out-1 .and. ix.eq.nx_lon_out-1)then
@@ -290,8 +291,12 @@ do while(tot_sec.lt.tot_sec_end)
                     snow=0.
                     !Only do further checks/calculations for points with bare soil
                     !********************************************************
-                    if(soilFraction(ix,iy).gt.1e-8)then
-                        
+                    !if(soilFraction(ix,iy).gt.1e-8)then
+                    if(soilFraction(ix,iy).gt.1./(dx_dy_out/dxdy_degr_landuse))then !At least 1 landuse tile must be bare soil
+                        ! !CGZ debug soil at sea
+                        ! if(lsm(ix_wind(ix),iy_wind(iy)).eq.0.)then
+                        !     print*, 'Soil at sea point:', lon_out, lat_out, soilFraction(ix,iy), 1./(dx_dy_out/dxdy_degr_landuse)
+                        ! endif
                         !Get snow depth
                         !********************************************************
                         if(inNestNr(ix,iy).eq.0)then
@@ -347,7 +352,7 @@ do while(tot_sec.lt.tot_sec_end)
                                                 clayContent(ix_clay(ix),iy_clay(iy)),&
                                 	        emission_flux(ix,iy), ustarVersion)
                                 endif
-                            
+
                                 if(emissionModel.eq.3)then     
                                 	!Use model from Kok et al., 2014
                                 	!*****************************
@@ -361,6 +366,8 @@ do while(tot_sec.lt.tot_sec_end)
                             endif!emission model with varying threshold
                             
                        endif !snow
+                    !emission_flux(ix,iy)=real(tot_sec/(time_step*3600)+1)*48!TESTING
+                    !print*, 'Value:', tot_sec/(time_step*3600)
                     endif !soil
                 end do !x
             end do!y
@@ -379,7 +386,8 @@ do while(tot_sec.lt.tot_sec_end)
             !Old binary format:
             !grid_filename = output_directory // 'DustEmissionFlux_' // trim(tmp) // '.bin'
             !call writeGridBin(grid_filename, emission_flux, nx_lon_out, ny_lat_out)
-            !call caldate(start_date + real(tot_sec)/(3600. * 24.), tmp_day, tmp_hour)
+            call caldate(start_date + real(tot_sec)/(3600. * 24.), tmp_day, tmp_hour)
+            write(*,*) tmp_day,tmp_hour!FOR DEBUGGING WRITE DATE
             !write(tmp, '(I8I06.6)') tmp_day, tmp_hour
         
             !Switch to netCDF output
@@ -388,7 +396,6 @@ do while(tot_sec.lt.tot_sec_end)
                 call netCDF_prepareEmission(nc_file_out, lons, lats)
                 !Save bare soil fraction in netcdf out
                 call netCDF_write_grid(nc_file_out, "soil", soilFraction)
-
             endif
             call netCDF_writeEmission(nc_file_out, emission_flux,tot_sec,step_nc)
          endif

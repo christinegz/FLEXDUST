@@ -39,7 +39,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
     logical                                 :: fileRELEASE
     integer, parameter                      :: releaseunit = 333, aboveSfc = 1
     real, parameter                         :: bottomHeight_dustProf = 1.0
-    real, parameter                         :: topHeight_dustProf = 200.0
+    real, parameter                         :: topHeight_dustProf = 100.0
     real(8), dimension(:), allocatable      :: inisize
     real(8), dimension(:,:), allocatable    :: inifrac
     INTEGER :: ALLOC_ERR
@@ -179,7 +179,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                         if (nrPart .lt. 8)then
                             call RANDOM_NUMBER(randomNumber)
                             call caldate(juldate + real(real(randomNumber * timestep)/24.), date_day, date_hour)
-                            call caldate(juldate + real(real((randomNumber + 1./10.) * timestep)/24.),date_day_next, date_hour_next)
+                            call caldate(juldate + real(real((randomNumber + 1./15.) * timestep)/24.),date_day_next, date_hour_next)
                         endif
 
                         !write release info

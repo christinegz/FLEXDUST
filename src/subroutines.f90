@@ -113,21 +113,9 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
      integer :: soil_id, tot_em_id
      integer :: singdim_id, hourvar_id,dayvar_id
      !Some vars for standard netcdf example
-     integer, parameter :: NDIMS = 2
-     integer, parameter :: NX = 6, NY = 12
-     integer :: x_dimid, y_dimid, varid, dimids(NDIMS)
-    ! integer :: data_out(NY, NX)
-    ! integer :: x, y
      real, dimension(0:nx_lon_out-1) :: lons
      real, dimension(0:ny_lat_out-1) :: lats
      real, dimension( int(releaseDays*24/time_step)) :: dates
-!  ! Example
-!  do x = 1, NX
-!     do y = 1, NY
-!        data_out(y, x) = (x - 1) * NY + (y - 1)
-!     end do
-!  end do
-
 
      call check(nf90_create(trim(grid_filename), cmode = NF90_HDF5, ncid = nc_id) )
      
@@ -204,7 +192,7 @@ subroutine netCDF_write_grid(grid_filename, var_name, grid)
      implicit none
 
      character(*) :: grid_filename, var_name
-     integer :: i, ncid,VarId_date, VarId_em, time
+     integer :: ncid,VarId_em
      real, dimension(0:nx_lon_out-1, 0:ny_lat_out-1) :: grid
 
      call check (nf90_open(grid_filename, nf90_Write, ncid))
@@ -212,7 +200,6 @@ subroutine netCDF_write_grid(grid_filename, var_name, grid)
      call check (nf90_inq_varid(ncid, var_name, VarId_em))
      !Write field
      call check( nf90_put_var(ncid, VarId_em,grid, (/1,1/)))
-
      call check( nf90_close(ncid) )
 
  end subroutine netCDF_write_grid
@@ -282,8 +269,8 @@ subroutine getGridPointWind(lat, lon, inNestNr, ix_wind, iy_wind, ix_wind_n, iy_
                 !point is inside nested grid number 'inNestNr'
                 !*****************************************************
                 inNestNr = i_nest
-                ix_wind_n = (lon - xlon0n(i_nest))/dxn(i_nest)
-                iy_wind_n = (lat - ylat0n(i_nest))/dyn(i_nest)
+                ix_wind_n = int((lon - xlon0n(i_nest))/dxn(i_nest))
+                iy_wind_n = int((lat - ylat0n(i_nest))/dyn(i_nest))
 
                 !If array boundaries are exceeded point was outside nest anyway
                 !*****************************************************
@@ -301,8 +288,8 @@ subroutine getGridPointWind(lat, lon, inNestNr, ix_wind, iy_wind, ix_wind_n, iy_
 
     !Get ix and iy in normal wind field
     !***************************************************************
-    ix_wind = (lon - xlon0)/dx
-    iy_wind = (lat - ylat0)/dy
+    ix_wind = int((lon - xlon0)/dx)
+    iy_wind = int((lat - ylat0)/dy)
     !check that array boundaries are not exceeded
     !***********************************************************
     if (ix_wind .lt. 0) ix_wind = ix_wind + (nx - 1)
@@ -320,8 +307,8 @@ subroutine getGridPointClay(lat, lon, inClay, ix_clay, iy_clay)
     logical :: inClay
 
     inClay = .true.
-    ix_clay_tmp = (lon - xlon0_c)/dx_c
-    iy_clay_tmp = (lat - ylat0_c)/dy_c
+    ix_clay_tmp = int((lon - xlon0_c)/dx_c)
+    iy_clay_tmp = int((lat - ylat0_c)/dy_c)
     !write(*,*) iy_clay_tmp, lat, ylat0_c, dy_c
     !if array boundaries are exceeded point is outside grid with claycontent
     !***********************************************************************
@@ -343,8 +330,8 @@ subroutine getGridPointLandUse(lat, lon, ix_lu, iy_lu, dxdy_degr_landuse)
     integer :: ix_lu, iy_lu
     real :: lat, lon, dxdy_degr_landuse
 
-    ix_lu = (lon - (-180))/dxdy_degr_landuse
-    iy_lu = (lat - (-90))/dxdy_degr_landuse
+    ix_lu = int((lon - (-180))/dxdy_degr_landuse)
+    iy_lu = int((lat - (-90))/dxdy_degr_landuse)
 
     !write(*,*) lat, lon, ix_lu,iy_lu
 end subroutine getGridPointLandUse
@@ -353,9 +340,10 @@ subroutine getGridPointLandUse_n(lat, lon, ix_lu_n, iy_lu_n, inLU_n)
     use dust_mod
     use par_mod
     implicit none
-    integer :: ix_lu_n, iy_lu_n
-    real :: lat, lon
-    logical :: inLU_n
+    integer, intent(out) :: ix_lu_n
+    integer, intent(out) :: iy_lu_n
+    real, intent(in)  :: lat, lon
+    logical, intent(out)  :: inLU_n
 
     inLU_n = .false.
 
@@ -363,10 +351,9 @@ subroutine getGridPointLandUse_n(lat, lon, ix_lu_n, iy_lu_n, inLU_n)
         .and. lat .ge. ylat0_n(1) .and. lat .le. (ylat0_n(1) + ny_landuse_n(1) * dxdy_landuse_n(1)))then
 
         inLU_n = .true.
-
-        ix_lu_n = (lon - xlon0_n(1))/dxdy_landuse_n(1)
-        iy_lu_n = (lat - ylat0_n(1))/dxdy_landuse_n(1)
-        !print*, lat, lon, ix_lu_n, iy_lu_n
+       
+        iy_lu_n = int((lat - ylat0_n(1))/dxdy_landuse_n(1))
+        ix_lu_n = int((lon - xlon0_n(1))/dxdy_landuse_n(1))
 
         if (iy_lu_n .gt. ny_landuse_n(1))then
             inLU_n = .false.
@@ -397,8 +384,8 @@ subroutine getGridPointErosionClass(lat, lon, ix, iy, inGrid)
 
         inGrid = .true.
 
-        ix = (lon - xlon0_erC)/dxdy_erC
-        iy = (lat - ylat0_erC)/dxdy_erC
+        ix = int((lon - xlon0_erC)/dxdy_erC)
+        iy = int((lat - ylat0_erC)/dxdy_erC)
 
 
         if (iy .gt. ny_erC)then
@@ -456,7 +443,7 @@ subroutine getGridPoints(ix_lu, iy_lu, inLU_n, ix_lu_n, iy_lu_n, ix_wind, iy_win
             call getGridPointLandUse(lat_out, lon_out, ix_lu(ix), iy_lu(iy), dxdy_degr_landuse)
             if (numbnests_landuse .gt. 0)then
                 if( numbnests_landuse .eq. 1)then
-                    call getGridPointLandUse_n(lat_out, lon_out, iy_lu_n(iy,numbnests_landuse), iy_lu_n(iy, numbnests_landuse), &
+                    call getGridPointLandUse_n(lat_out, lon_out, ix_lu_n(ix,numbnests_landuse), iy_lu_n(iy, numbnests_landuse), &
                     inLU_n(ix, iy))
                 else
                     print*, 'Need to adjust source code grid point land use for more than 1 nests!'

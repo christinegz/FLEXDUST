@@ -26,7 +26,8 @@ subroutine dustEmmission_Kok14(em, soilF, lat,dxdy_degr, inNestNr, ix_wind, iy_w
 
     implicit none
 
-    real     :: mfac, em, soilF, lat, mass, mobilisationThreshold, dxdy_degr
+    real     :: mfac, em, lat, mass, mobilisationThreshold, dxdy_degr
+    real     :: soilF
     real     :: u_star_local, rho_air, flux
     integer  :: ix_wind, iy_wind, ix_wind_n, iy_wind_n, time_int, inNestNr
     real, parameter :: C_alpha=1.8!2.7 !(Kok et al. 2014, part 2)

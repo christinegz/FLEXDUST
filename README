@@ -1,16 +1,18 @@
 FLEXDUST
 Author: Christine Groot Zwaaftink (cgz@nilu.no)
 
-FLEXDUST can be used to calculate dust emission and prepare input (RELEASE) files for FLEXPART. 
+FLEXDUST can be used to calculate dust emission and prepare input (RELEASE) files for FLEXPART. Please see the description of FLEXDUST in Groot Zwaaftink et al. (2016) for details.
 Other than input files in this folder, ECMWF wind fields are necessary. See FLEXPART documentation for details. The source code for reading of wind fields was mostly copied from FLEXPART.
-FLEXDUST requires the same libraries installed as FLEXPART.
+FLEXDUST requires the same libraries (e.g. grib_api and NetCDF) installed as FLEXPART.
 
 The model has only been tested for a single nested wind field and a single nested land cover file. Additional nested fields will require adjustments.
 
-Settings (e.g. domain, resolution, input files) can be adjusted in dust_mod.f90.
+Settings (e.g. domain, resolution, input files) can be adjusted in dust_mod.f90. Make sure to adjust paths etc before compiling and running FLEXDUST.
 
-To run the model:
--prepare ECMWF data
--adjust paths in dust_mod.f90
--compile the code (make -f Makefile)
--run with ./FLEXDUST
+Please contact me in case you plan to use FLEXDUST so I can help you find the right model settings for your application.
+Let me know if you have any suggestions to improve FLEXDUST or the documentation!
+
+References
+Groot Zwaaftink, C. D., H. Grythe, H. Skov, A. Stohl, (2016) Substantial contribution of northern high-latitude sources to mineral dust in the Arctic, Journal of Geophysical Research, 121, 13,678–13,697, DOI: 10.1002/2016JD025482
+
+Groot Zwaaftink, C.D. Ó. Arnalds, P. Dagsson-Waldhauserova, S. Eckhardt, J. M. Prospero, A. Stohl (2017), Temporal and spatial variability of Icelandic dust emission and atmospheric transport. Atmospheric Chemistry and Physics, 17, 10865-10878, doi:10.5194/acp-17-10865-2017
