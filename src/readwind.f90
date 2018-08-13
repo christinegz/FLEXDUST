@@ -247,6 +247,11 @@ subroutine readwind(indj,n,uuh,vvh,wwh)
      isec1(6)=27         ! indicatorOfParameter
   elseif ((parCat.eq.128).and.(parNum.eq.28)) then ! CVH
      isec1(6)=28         ! indicatorOfParameter
+     !Check if some fields are available
+  !elseif ((parCat.eq.128).and.(parNum.eq.66)) then ! LAI_low vegetation
+  !  print*, 'Found low vegetation!'
+  !elseif ((parCat.eq.128).and.(parNum.eq.67)) then ! LAI_high vegetation
+  !  print*, 'Found high vegetation!'
     else
     ! cgz: removed warning
   !    print*,'***WARNING: undefined GRiB2 message found!',discipl, &

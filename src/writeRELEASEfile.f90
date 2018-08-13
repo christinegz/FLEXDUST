@@ -1,6 +1,11 @@
 !**********************************************************************
-! Copyright 2016,2017                                                 *
+! Copyright 2016,2017,2018                                            *
 ! Christine Groot Zwaaftink                                           *
+! cgz@nilu.no                                                         *
+!                                                                     *
+! modified by Christian Maurer                                        *
+! christian.maurer@zamg.ac.at                                         *
+! 201807                                                              *
 !                                                                     *
 ! This file is part of FLEXDUST.                                      *
 !                                                                     *
@@ -30,12 +35,14 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
     character(*):: filename
     real        :: particlesPerTonDust, dxdy_degr, lon_left, lat_bottom, combEmission, totalEmission, releaseDays
     integer     :: timestep, i, typeSizeDistr, numberSpecies, Junge_index, xx, yy
-    integer     :: nx_out, ny_out, ix, iy, date_day, date_hour
-    integer     :: date_day_next, date_hour_next, nr, ii, release_dxdy_step
+    integer     :: nx_out, ny_out, ix, iy, date_day, date_hour, date_day_orig, date_hour_orig
+    integer     :: date_day_ran, date_hour_ran, date_day_next_ran, date_hour_next_ran
+    integer     :: date_day_next_orig, date_hour_next_orig, nr, ii, release_dxdy_step
+    integer     :: date_day_next, date_hour_next
     integer     :: start_date_day, startSpecies, current_species, nrPart, stepPart, totalParticles, estPart
     real        :: emission(0:nx_out - 1, 0:ny_out - 1)
     real        :: cum_fract, rand_class, randomNumber, minMassWrite
-    real(kind = dp)                         :: juldate, mass_species, lat, lon
+    real(kind = dp)                         :: juldate, mass_species, lat, lon, start_ran
     logical                                 :: fileRELEASE
     integer, parameter                      :: releaseunit = 333, aboveSfc = 1
     real, parameter                         :: bottomHeight_dustProf = 1.0
@@ -119,8 +126,10 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
 
     !Get date for this timestep and end of emission period
     !************************************************************************
-    call caldate(juldate, date_day, date_hour)
-    call caldate(juldate + real(real(timestep)/24.), date_day_next, date_hour_next)
+    call caldate(juldate-real(real(timestep-1)/24.), date_day_orig, date_hour_orig)
+    call caldate(juldate + real(real(1)/24.), date_day_next_orig, date_hour_next_orig)
+    !print*, 'RELEASE PERIOD: ', juldate,  date_day_orig, date_hour_orig, date_day_next_orig, date_hour_next_orig
+
     !************************************************************************
 
     !Loop through grid and write data to release file
@@ -151,21 +160,23 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                 end do
                 totalEmission = totalEmission + combEmission
             endif
+
             !If there was any suspension, write to release file
             !*************************************************************
             if (combEmission .gt. minMassWrite)then
 
                 !Nr particles indication
                 estPart = max(1, min(1000, int(particlesPerTonDust * combEmission/1000.)))
+
+                call flush()
                 if (estPart > 20)then
                     
-                    !Loop through size distribution
+                    !Loop through complete size distribution if there are many particles emitted (otherwise pick one size class)
                     !*********************************************************
                     do i = 0, numberSpecies - 1
                         !Calculate mass for this particle size
                         !*************************************************
                         mass_species = inifrac(i, Junge_index) * combEmission;
-
                         !Determine number of particles
                         !*************************************************
                         if (inisize(i) .lt. 15.0)then
@@ -174,12 +185,27 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                             nrPart = max(1, min(1000, int(particlesPerTonDust * mass_species/1000.)))
                         endif
                         stepPart = stepPart + nrPart
-
-                        !If less than 8 particles, choose random release time within release period
+                        
+                        !If less than 8 particles, choose random release time within release period that covers 10% of release period
+                        !This is done because depending on settings in FLEXPART it may start all particles at once at the beginning of
+                        !a release if there are few particles.
                         if (nrPart .lt. 8)then
                             call RANDOM_NUMBER(randomNumber)
-                            call caldate(juldate + real(real(randomNumber * timestep)/24.), date_day, date_hour)
-                            call caldate(juldate + real(real((randomNumber + 1./15.) * timestep)/24.),date_day_next, date_hour_next)
+                            start_ran=juldate-real(real(timestep-1)/24.) + (randomNumber * real(timestep))/24. !Random start time within release period
+                            call caldate(start_ran, date_day_ran, date_hour_ran) !Start of release in right format                           
+                            call caldate(MIN(start_ran+real(real(0.10*timestep))/24.,juldate + real(real(1)/24.)), & !End of random release time may not succeed end of release period
+                            date_day_next_ran, date_hour_next_ran)
+                            
+                            date_day = date_day_ran
+                            date_hour = date_hour_ran
+                            date_day_next = date_day_next_ran
+                            date_hour_next = date_hour_next_ran
+
+                        else
+                            date_day = date_day_orig
+                            date_hour = date_hour_orig
+                            date_day_next = date_day_next_orig
+                            date_hour_next = date_hour_next_orig
                         endif
 
                         !write release info
@@ -201,7 +227,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                             if (ii .eq. i) then
                                 write(releaseunit, '(E10.4)') mass_species
                             else
-                                write(releaseunit, '(E10.4)')0.0
+                                write(releaseunit, '(E10.4)') 0.0
                             endif
                         end do
 
@@ -214,7 +240,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                     end do
 
                 else
-                    
+                   
                     !Not much mass release, gather in 1 particle size, pick random size from size distribution
                     !*************************************************
                     call RANDOM_NUMBER(rand_class)
@@ -239,8 +265,20 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                     !If less than 8 particles, choose random release time within release period
                     if (nrPart .lt. 8)then
                         call RANDOM_NUMBER(randomNumber)
-                        call caldate(juldate + real(real(randomNumber * timestep)/24.), date_day, date_hour)
-                        call caldate(juldate + real(real((randomNumber + 1./10.) * timestep)/24.), date_day_next, date_hour_next)
+                        start_ran=juldate-real(real(timestep-1)/24.) + (randomNumber * real(timestep))/24. !Random start time within release period
+                        call caldate(start_ran, date_day_ran, date_hour_ran) !Start of release in right format                           
+                        call caldate(MIN(start_ran+real(real(0.10*timestep))/24.,juldate + real(real(1)/24.)), & !End of random release time may not succeed end of release period
+                        date_day_next_ran, date_hour_next_ran)
+                     
+                        date_day = date_day_ran
+                        date_hour = date_hour_ran
+                        date_day_next = date_day_next_ran
+                        date_hour_next = date_hour_next_ran
+                    else
+                        date_day = date_day_orig
+                        date_hour = date_hour_orig
+                        date_day_next = date_day_next_orig
+                        date_hour_next = date_hour_next_orig
                     endif
 
                     !write release info

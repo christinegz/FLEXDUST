@@ -110,17 +110,18 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
      integer      :: nc_id, status
      !from flexpart ctm
      integer :: londim_id, latdim_id, timedim_id,lonvar_id, latvar_id, timevar_id,emitvar_id
-     integer :: soil_id, tot_em_id
+     integer :: soil_id, tot_em_id,time_s_dim_id
      integer :: singdim_id, hourvar_id,dayvar_id
      !Some vars for standard netcdf example
      real, dimension(0:nx_lon_out-1) :: lons
      real, dimension(0:ny_lat_out-1) :: lats
-     real, dimension( int(releaseDays*24/time_step)) :: dates
+     !real, dimension( int(releaseDays*24/time_step)) :: dates
 
      call check(nf90_create(trim(grid_filename), cmode = NF90_HDF5, ncid = nc_id) )
      
      !Define dimensions
      call check(NF90_DEF_DIM(nc_id, "val", 1, singdim_id))
+     call check(NF90_DEF_DIM(nc_id, "time_s", 2, time_s_dim_id))
      call check(NF90_DEF_DIM(nc_id, "lon", nx_lon_out, londim_id))
      call check(NF90_DEF_DIM(nc_id, "lat", ny_lat_out, latdim_id))
      call check(NF90_DEF_DIM(nc_id, "time", int(releaseDays*24/time_step) , timedim_id))
@@ -131,7 +132,7 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
      call check(nf90_def_var(nc_id, "starthour", nf90_int, (/ singdim_id /), hourvar_id))
      call check(nf90_def_var(nc_id, "lon", nf90_float, (/ londim_id /), lonvar_id))
      call check(nf90_def_var(nc_id, "lat", nf90_float, (/ latdim_id /), latvar_id))
-     call check(nf90_def_var(nc_id, "Date", nf90_int, (/ timedim_id /), timevar_id))
+     call check(nf90_def_var(nc_id, "Date", nf90_int, (/time_s_dim_id,timedim_id/), timevar_id))
      call check(nf90_def_var(nc_id, "Emission", nf90_float, (/londim_id,latdim_id,timedim_id /), emitvar_id))
      call check(nf90_def_var(nc_id, "cum_emission", nf90_float, (/londim_id,latdim_id/), tot_em_id))
      call check(nf90_def_var(nc_id, "soil", nf90_float, (/londim_id,latdim_id/), soil_id))
@@ -147,7 +148,7 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
     call check(NF90_PUT_ATT(nc_id, timevar_id, "standard_name", "Date"))
     call check(NF90_PUT_ATT(nc_id, emitvar_id, "units", "kg/m2"))
     call check(NF90_PUT_ATT(nc_id, emitvar_id, "standard_name", "Emission"))
-    call check(NF90_PUT_ATT(nc_id, emitvar_id, "units", "kg/m2"))
+    call check(NF90_PUT_ATT(nc_id, tot_em_id, "units", "kg/m2"))
     call check(NF90_PUT_ATT(nc_id, tot_em_id, "standard_name", "Simulated total dust emission"))
     call check(NF90_PUT_ATT(nc_id, soil_id, "standard_name", "Bare soil fraction"))
     call check(NF90_PUT_ATT(nc_id, dayvar_id, "standard_name", "Startdate of simulation"))
@@ -161,27 +162,26 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
      call check( nf90_put_var(nc_id, lonvar_id, lons) )
      call check( nf90_put_var(nc_id, latvar_id, lats) )
 
-    print*, "prepared netcd and added longitude"
+    print*, "Prepared NetCDF output file"
      call check( nf90_close(nc_id) )
 end subroutine netCDF_prepareEmission
 
- subroutine netCDF_writeEmission(grid_filename, grid, time, i)
+ subroutine netCDF_writeEmission(grid_filename, grid, time_test, i)
      use dust_mod
      use netcdf
      implicit none
 
      character(*) :: grid_filename
-     integer :: i, ncid,VarId_date, VarId_em, time
+     integer :: i, ncid,VarId_date, VarId_em
+     integer, dimension(2) :: time_test
      real, dimension(0:nx_lon_out-1, 0:ny_lat_out-1) :: grid
 
      call check (nf90_open(grid_filename, nf90_Write, ncid))
      !Get id number
      call check (nf90_inq_varid(ncid, "Date", VarId_date))
      call check (nf90_inq_varid(ncid, "Emission", VarId_em))
-
-     call check( nf90_put_var(ncid, VarId_date,time, (/i+1/)))
+     call check( nf90_put_var(ncid, VarId_date,time_test, (/1,i+1/)))
      call check( nf90_put_var(ncid, VarId_em,grid, (/1,1,i+1/)))
-
      call check( nf90_close(ncid) )
 
  end subroutine netCDF_writeEmission
@@ -483,10 +483,15 @@ subroutine writeSummary(totalEmission)
     !****************************************************************
     write(fileunit, *) 'INPUT'
     write(fileunit, *) 'Wind fields:', ECMWF_input
-    write(fileunit, *) 'Nested wind fields:', ECMWF_input_nest
+    if(numberOfNests.gt.0)then
+        write(fileunit, *) 'Nested wind fields:', ECMWF_input_nest
+    endif
+
     write(fileunit, *) 'Time step wind fields:', time_step_wind
     write(fileunit, *) 'Land use file:', landuse_file
-    write(fileunit,  *) 'Nested landuse: ',landuse_file_n
+    if(numbnests_landuse.gt.0)then 
+        write(fileunit,  *) 'Nested landuse: ',landuse_file_n
+    endif
 
     write(fileunit, *) 'OUTPUT'
     write(fileunit, *) 'Modelled period:', start_date_day, start_date_hour, ' +', releaseDays, ' days'

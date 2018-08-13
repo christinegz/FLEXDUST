@@ -115,15 +115,7 @@ logical :: inClay, test, ustarVersion
 		!Emitted mass in kg for ustar
                 mass_tmp_ustar=scalingFactor*eta*rho_air/ga*u_star_local**3*&
                      (1-mobilisationThreshold**2/u_star_local**2)*(1+mobilisationThreshold/u_star_local)
-                
-                     
-!                 !Print for debugging
-!                if(mass_tmp_ustar/mass_tmp_stress.ne.1.0000)then
-!                    print*, 'rho= ',rho_air,', tau= ', stress_local,', tau_t=', shearStressThres,', u*=', u_star_local,&
-!                      ', u*t=', mobilisationThreshold, ', mass_tau=', mass_tmp_stress, ', mass_ustar=', mass_tmp_ustar, ', ratio=',&
-!                      mass_tmp_ustar/mass_tmp_stress, ustarVersion
-!                endif
-                
+
                 if(ustarVersion)then
                     em_mass=em_mass+mass_tmp_ustar*soilF*mfac   !kg
                     em_flux=em_flux+mass_tmp_ustar*soilF*3600.*time_int !kg/m2
