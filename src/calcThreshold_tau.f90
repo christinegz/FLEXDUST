@@ -126,8 +126,7 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
         !******************************************************************************
         if (PRECIP_BLOCK) then
             !if(sum(precipMem(33:40))*3.0 .lt. 0.5 .or. sum(precipMem(1:39))*3.0 .lt. 0.1)then
-            if (sum(precipMem(40:40)) .lt. 1.0 .or. sum(precipMem(1:39)) * 3.0 .lt. 0.1)then
-                !if (sum(precipMem(39:40)) .lt. 1.0 .or. sum(precipMem(1:39)) * 3.0 .lt. 0.1)then
+            if (sum(precipMem(40:40)) .lt. 1.0 .or. sum(precipMem(1:39)) .lt. 0.1)then
                 !No significant precipitation or very dry soil > allow erosion   
                 frictVelThres = frictVelThres
                 shearStressThres = shearStressThres

@@ -57,7 +57,7 @@ module dust_mod
     
     !Nested landuse file and properties
     !***********************************************************************
-    integer, parameter         :: numbnests_landuse=1   !Developed and tested for only 1 nested field (sandy deserts Iceland or Antarctic), 
+    integer, parameter         :: numbnests_landuse=0   !Developed and tested for only 1 nested field (sandy deserts Iceland or Antarctic), 
                                                         !requires further changes in the source code if other fields are used! 
                                                         !(Adjust code for bare land and possibly soil fraction calculation.)
     
@@ -87,20 +87,20 @@ module dust_mod
     !output time frame
     integer, parameter          :: start_date_day  = 20161201
     integer, parameter          :: start_date_hour = 000000
-    integer, parameter          :: time_step	  = 24
-    real, parameter             :: releaseDays	  = 397
+    integer, parameter          :: time_step	  = 6
+    real, parameter             :: releaseDays	  = 1.0!
     !***********************************************************************
     
     !output grid
     !***********************************************************************
-    character(*),parameter      :: output_directory  = 'output/test/'
-    real, parameter             :: lat_bottom        = -90
-    real, parameter             :: lon_left          = -179
-    real, parameter             :: dx_dy_out         = 0.5  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
+    character(*),parameter      :: output_directory  = '../output/test/'
+    real, parameter             :: lat_bottom        = 3
+    real, parameter             :: lon_left          = -9
+    real, parameter             :: dx_dy_out         = 0.75  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
     integer, parameter          :: release_dxdy_step = 1    !Interval of x and y in which release file should be written 
                                                             !(2 means that calculated emission of 4 grid cells with resolution dx_dy_out will be combined in 1 FLEXPART release)
-    integer, parameter          :: ny_lat_out        = 180/dx_dy_out!180/dx_dy_out!5/dx_dy_out
-    integer, parameter          :: nx_lon_out        = 360/dx_dy_out!360/dx_dy_out!14/dx_dy_out
+    integer, parameter          :: ny_lat_out        = 40/dx_dy_out!180/dx_dy_out!5/dx_dy_out
+    integer, parameter          :: nx_lon_out        = 40/dx_dy_out!360/dx_dy_out!14/dx_dy_out
     !***********************************************************************
     
     !Output files
@@ -112,7 +112,7 @@ module dust_mod
     
     !Switches output
     !***********************************************************************
-    logical, parameter          :: RELEASEFILE=.false.       !Write a FLEXPART release file
+    logical, parameter          :: RELEASEFILE=.true.       !Write a FLEXPART release file
     logical, parameter          :: writeGridEmission=.true. !For each output time step, write a grid with emission flux (kg m-2), 
                                                             !practical for splitting in regions and doing FLEXPART simulations with changing number of particles
     !***********************************************************************
@@ -120,23 +120,23 @@ module dust_mod
     !Model parameters
     !***********************************************************************
     real, parameter             :: mobThreshold = 0.3        !Default mobilization threshold should be wind speed or friction velocity, depending on choice "emissionModel", default should be 0.3 for emissionModel 2
-    real, parameter             :: particlesPerTonDust = 1e-2!Number of particles to be released per ton of dust, adjust with resolution
-    integer, parameter          :: typeSizeDistr=3           !Use size distribution as in DustBowl (1), or similar to Kok 2011 (2 & 3) with many small particles in 3
+    real, parameter             :: particlesPerTonDust = 1   !Number of particles to be released per ton of dust, adjust with resolution
+    integer, parameter          :: typeSizeDistr=3           !Use size distribution as in DustBowl-Sodemann et al.2015 (1), or similar to Kok 2011 (2 & 3) with many small particles in 3
     integer, parameter          :: Junge_index = 0           !only for typeSizeDistr 1
     real*8, parameter           :: scalingFactor = 4.8e-4    !Default value 4.8e-4 for emissionModel 2
-    integer, parameter          :: emissionModel = 2         !Choose from several emission Models (1: HSO, 2:MB95, 3:Kok et al. 2014), default and tested: 2
+    integer, parameter          :: emissionModel = 2         !Choose from several emission Models (1: HSO, 2:MB95, 3:Kok et al. 2014), default and tested: 2. Options 1 and 3 may currently not be up to date with other changes in the model
     real, parameter             :: snowLimit =0.01           !From which snow amount should mobilization not be possible?
-    real, parameter             :: minMassWrite=10.0          !Minimum emission (kg) for which to write a release > change depending on wanted resolution
+    real, parameter             :: minMassWrite=10.0         !Minimum emission (kg) for which to write a release > change depending on wanted resolution
     !***********************************************************************
     
     !Switches model
     !***********************************************************************
-    logical, parameter          :: OBSTACLES=.true.          !Add erodibility depending on topography acc. to Ginoux et al., 2001?
+    logical, parameter          :: OBSTACLES=.true.          !Influence on roughness length by obstables?
     logical, parameter          :: EROSION_TOPO=.true.       !Add erodibility depending on topography acc. to Ginoux et al., 2001?
     logical, parameter          :: PRECIP_BLOCK=.false.      !Block dust emission in case of precipitation?
     logical, parameter          :: SOILMOSITURE_DEP=.true.   !Should threshold friction velocity increase with soil moisture?
     logical, parameter          :: correctLSM_SNOW=.true.    !Use snow cover of nearby land-points if the point of interest is on a 'sea-point' in ECMWF but has soil fraction>0 
-    logical, parameter          :: ustarVersion=.true.	     !Calculate emission based on friction velocity, or shear stress
+    logical, parameter          :: ustarVersion=.true.	     !Calculate emission based on friction velocity, or shear stress > implemented for testing but does not change results with current model setup!
     !***********************************************************************
     
 end module dust_mod

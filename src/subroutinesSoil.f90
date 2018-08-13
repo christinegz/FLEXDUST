@@ -131,11 +131,13 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
     logical :: city
 
     print*, 'Building soil fraction grid'
+    
     useVEG2010=.false.
     
     !Get vegetation cover of ECMWF in 2010 if no current information is available
     !***************************************************************
     if (sum(sum(cvh(:,:, 1, 1), 2), 1) .lt.0.01 .or. sum(sum(cvl(:,:, 1, 1), 2), 1).lt.0.01)then
+        print*, 'Using vegetation of different year'
         open(unit = 654, file = '../INPUT/Vegetation_ECMWF_2010', action = 'read', form = 'unformatted', &
         access = 'stream')
         read(654) vegetationECMWF(:,:)
@@ -206,7 +208,7 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
             if (inLU_n(ix, iy))then
                 count = 0
                 gridSum = 0
-                !print*, ix, iy, iy_lu_n(iy, 1), ix_lu_n(ix, 1)
+             !   print*, ix, iy, iy_lu_n(iy, 1), ix_lu_n(ix, 1)
 
                 do j = iy_lu_n(iy, 1), min(iy_lu_n(iy + 1, 1), ny_landuse_n(1) - 1)
                     do i = ix_lu_n(ix, 1), min(ix_lu_n(ix + 1, 1), nx_landuse_n(1) - 1)
