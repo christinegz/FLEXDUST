@@ -86,14 +86,14 @@ module dust_mod
     !***********************************************************************
     !output time frame
     integer, parameter          :: start_date_day  = 20161201
-    integer, parameter          :: start_date_hour = 000000
+    integer, parameter          :: start_date_hour = 010000
     integer, parameter          :: time_step	  = 6
-    real, parameter             :: releaseDays	  = 1.0!
+    real, parameter             :: releaseDays	  = 0.5!
     !***********************************************************************
     
     !output grid
     !***********************************************************************
-    character(*),parameter      :: output_directory  = '../output/test/'
+    character(*),parameter      :: output_directory  = '../output/dump/'
     real, parameter             :: lat_bottom        = 3
     real, parameter             :: lon_left          = -9
     real, parameter             :: dx_dy_out         = 0.75  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)

@@ -19,7 +19,7 @@
 ! along with FLEXPART.  If not, see <http://www.gnu.org/licenses/>.   *
 !**********************************************************************
 
-subroutine getfields(itime,nstop)
+subroutine getfields(itime,nstop, time_last_wind)
   !                       i     o
   !*****************************************************************************
   !                                                                            *
@@ -69,7 +69,7 @@ subroutine getfields(itime,nstop)
 
   implicit none
 
-  integer :: indj,itime,nstop
+  integer :: indj,itime,nstop, time_last_wind
 
   real :: uuh(0:nxmax-1,0:nymax-1,nuvzmax)
   real :: vvh(0:nxmax-1,0:nymax-1,nuvzmax)
@@ -89,7 +89,7 @@ subroutine getfields(itime,nstop)
 
   if ((ldirect*wftime(1).gt.ldirect*itime).or. &
        (ldirect*wftime(numbwf).lt.ldirect*itime)) then
-      ! write(*,*) 'CGZ debug getfield:', wftime(1), itime, wftime(numbwf), numbwf
+       !write(*,*) 'CGZ debug getfield:', wftime(1), itime, wftime(numbwf), numbwf
     write(*,*) 'FLEXPART WARNING: NO WIND FIELDS ARE AVAILABLE.'
     write(*,*) 'A TRAJECTORY HAS TO BE TERMINATED.'
     nstop=4
@@ -100,10 +100,9 @@ subroutine getfields(itime,nstop)
   !during a wind field (no averaging/interpolation between consecutive wind fields). This means we 
   !only need one wind field and the time management is done in the main file.
   
-   !write(*,*) 'wftime:', wftime(:)
-   
+   !write(*,*) 'wftime:', wftime(1:20)
 	do indj=indmin,numbwf-1
-            !write(*,*) 'CGZ getfields:', wftime(indj+1), itime
+            !write(*,*) 'CGZ getfields:', wftime(indj+1), itime, ldirect*wftime(indj+1), ldirect*itime
 		if (ldirect*wftime(indj+1).gt.ldirect*itime) then
                 memtime(1)=wftime(indj)
                 memind(1)=1
@@ -114,7 +113,8 @@ subroutine getfields(itime,nstop)
 		call verttransform(memind(1),uuh,vvh,wwh,pvh) !gets air density
 		call verttransform_nests(memind(1),uuhn,vvhn,wwhn,pvhn)
 		memtime(1)=wftime(indj+1)
-		nstop = 1 
+    nstop = 1
+    time_last_wind=wftime(indj) 
 		goto 60
 		endif
     end do

@@ -242,17 +242,16 @@ program FLEXDUST
     !Loop through complete time series of releaseDays in hourly steps
     !*************************************************************************************************
     do while(tot_sec.lt.tot_sec_end)
-        write(*,*) 'Currently at ' ,tot_sec, ' (sec) out of total:', tot_sec_end
+        write(*,*) 'Currently at ' ,tot_sec, ' (sec) out of total:', tot_sec_end!, ', last wind:', time_last_wind
         call flush()
         
         !Check if the wind field is up to date
         !****************************************************************
         if (tot_sec.eq.0 .or. tot_sec.ge.time_last_wind+time_step_wind*3600) then
-            !Get wind field
+                !Get wind field
             !*************************************************************
-            call getfields(tot_sec,nstop)
-            time_last_wind=tot_sec ! Save time of latest wind field reading
-            print*, 'Finished reading wind'
+            call getfields(tot_sec,nstop, time_last_wind)
+            print*, 'Finished reading wind, save time:', time_last_wind
             !*************************************************************
         endif
               
@@ -268,7 +267,7 @@ program FLEXDUST
             ix_wind, iy_wind)
             
             !Check if some read fields actually have values
-            print*, ''
+            print* 
             print*, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
             print*, 'CHECK if the following values are non-zero'
             print*, 'If 0 missing variables in ECMWF fields; reconsider if you should change switches or get additional data!'
@@ -276,7 +275,7 @@ program FLEXDUST
             print*, 'Total soil moisture:', sum(sum(svw(:,:, 1, 1), 2), 1)
             print*, 'Total precipitation:', sum(sum(lsprec(:,:, 1, 1), 2), 1), sum(sum(convprec(:,:, 1, 1), 2), 1)
             print*, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-            print*, ''
+            print* 
             !call writeGrid(output_directory//'Soil_fraction.dat',soilFraction,nx_lon_out, ny_lat_out)
         endif
         !*************************************************************
@@ -442,6 +441,7 @@ program FLEXDUST
             !Write the dust emission for this time step as a grid in a binary file
             !************************************************************************
             if (writeGridEmission)then
+                !print*, 'cgz debug: writing grid at time: ',tot_sec
                 !Old binary format:
                 !grid_filename = output_directory // 'DustEmissionFlux_' // trim(tmp) // '.bin'
                 !call writeGridBin(grid_filename, emission_flux, nx_lon_out, ny_lat_out)
