@@ -19,7 +19,7 @@
 !**********************************************************************
 subroutine dustEmmission_MB95_tau(em_mass, soilF, lat,dxdy_degr, inNestNr, ix_wind, iy_wind, ix_wind_n, iy_wind_n,&
                                 time_int, scalingFactor, mobilisationThreshold,shearStressThres, inClay, f_clay_tmp, em_flux, &
-                                ustarVersion)
+                                ustarVersion, gridarea)
 
 use par_mod
 use com_mod
@@ -72,32 +72,32 @@ logical :: inClay, test, ustarVersion
                     endif
                 else
                     f_clay=0.1 !Should never occur since clay is available at each grid point with soil
-                print*, 'Not in Clay'
+                !print*, 'Not in Clay'
 		endif
         
-                !Calculate area copied from FLEXPART
-                !****************************************
-                ylatp=lat+dxdy_degr
-                ylatm=lat
-                if ((ylatm.lt.0).and.(ylatp.gt.0.)) then
-                    hzone=dxdy_degr*r_earth*pi180
-                else
-                    cosfactp=cos(ylatp*pi180)
-                    cosfactm=cos(ylatm*pi180)
-                    if (cosfactp.lt.cosfactm) then
-                        hzone=sqrt(1-cosfactp**2)- &
-                        sqrt(1-cosfactm**2)
-                        !print*, hzone
-                        hzone=hzone*r_earth
-                    else
-                        hzone=sqrt(1-cosfactm**2)- &
-                        sqrt(1-cosfactp**2)
-                        hzone=hzone*r_earth
-                    endif
-                endif
+                ! !Calculate area copied from FLEXPART
+                ! !****************************************
+                ! ylatp=lat+dxdy_degr
+                ! ylatm=lat
+                ! if ((ylatm.lt.0).and.(ylatp.gt.0.)) then
+                !     hzone=dxdy_degr*r_earth*pi180
+                ! else
+                !     cosfactp=cos(ylatp*pi180)
+                !     cosfactm=cos(ylatm*pi180)
+                !     if (cosfactp.lt.cosfactm) then
+                !         hzone=sqrt(1-cosfactp**2)- &
+                !         sqrt(1-cosfactm**2)
+                !         !print*, hzone
+                !         hzone=hzone*r_earth
+                !     else
+                !         hzone=sqrt(1-cosfactm**2)- &
+                !         sqrt(1-cosfactp**2)
+                !         hzone=hzone*r_earth
+                !     endif
+                ! endif
                 
-                gridarea=2.*pi*r_earth*hzone*dxdy_degr/360.
-                !****************************************
+                ! gridarea=2.*pi*r_earth*hzone*dxdy_degr/360.
+                ! !****************************************
                 
 		!multiplication factor accounting for time step, area and conversion to kg
 		!**********************************************************

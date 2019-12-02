@@ -47,7 +47,7 @@ subroutine writeGrid(grid_filename, grid, nx_grid, ny_grid)
 end subroutine writeGrid
 
 subroutine writeGridBin(grid_filename, grid, nx_grid, ny_grid)
-    !writeGrid: a subroutine to write a grid of size (nx_landuse, ny_landuse) to grid_filename (simple txt file, mostly for debugging)
+    !writeGrid: a subroutine to write a grid of size (nx_landuse, ny_landuse) to grid_filename (binairy file)
     use dust_mod
     implicit none
 
@@ -110,7 +110,7 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
      integer      :: nc_id, status
      !from flexpart ctm
      integer :: londim_id, latdim_id, timedim_id,lonvar_id, latvar_id, timevar_id,emitvar_id
-     integer :: soil_id, tot_em_id,time_s_dim_id
+     integer :: soil_id, area_id,tot_em_id,time_s_dim_id
      integer :: singdim_id, hourvar_id,dayvar_id
      !Some vars for standard netcdf example
      real, dimension(0:nx_lon_out-1) :: lons
@@ -136,6 +136,7 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
      call check(nf90_def_var(nc_id, "Emission", nf90_float, (/londim_id,latdim_id,timedim_id /), emitvar_id))
      call check(nf90_def_var(nc_id, "cum_emission", nf90_float, (/londim_id,latdim_id/), tot_em_id))
      call check(nf90_def_var(nc_id, "soil", nf90_float, (/londim_id,latdim_id/), soil_id))
+     call check(nf90_def_var(nc_id, "area", nf90_float, (/londim_id,latdim_id/), area_id))
 
     !Attributes
     call check(NF90_PUT_ATT(nc_id, lonvar_id, "units", "degrees"))
@@ -151,6 +152,8 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
     call check(NF90_PUT_ATT(nc_id, tot_em_id, "units", "kg/m2"))
     call check(NF90_PUT_ATT(nc_id, tot_em_id, "standard_name", "Simulated total dust emission"))
     call check(NF90_PUT_ATT(nc_id, soil_id, "standard_name", "Bare soil fraction"))
+    call check(NF90_PUT_ATT(nc_id, area_id, "standard_name", "Area grid box"))
+    call check(NF90_PUT_ATT(nc_id, area_id, "units", "m2"))
     call check(NF90_PUT_ATT(nc_id, dayvar_id, "standard_name", "Startdate of simulation"))
 
     !Finished defining
@@ -515,3 +518,39 @@ subroutine writeSummary(totalEmission)
     write(fileunit, *) 'Total emitted mass:', totalEmission
     close(fileunit)
 end subroutine writeSummary
+
+subroutine calcGridArea(area, lat, dxdy_degr)
+    
+    use com_mod
+    use dust_mod
+    use par_mod
+
+    implicit none
+    real :: lat
+    real :: area, dxdy_degr
+    real    :: ylatp, ylatm, gridarea, cosfactp, hzone, cosfactm
+
+    !Calculate area (copied from FLEXPART)
+    !****************************************
+    ylatp=lat+dxdy_degr
+    ylatm=lat
+    if ((ylatm.lt.0).and.(ylatp.gt.0.)) then
+        hzone=dxdy_degr*r_earth*pi180
+    else
+        cosfactp=cos(ylatp*pi180)
+        cosfactm=cos(ylatm*pi180)
+        if (cosfactp.lt.cosfactm) then
+            hzone=sqrt(1-cosfactp**2)- &
+            sqrt(1-cosfactm**2)
+            !print*, hzone
+            hzone=hzone*r_earth
+        else
+            hzone=sqrt(1-cosfactm**2)- &
+            sqrt(1-cosfactp**2)
+            hzone=hzone*r_earth
+        endif
+    endif
+    
+    area=2.*pi*r_earth*hzone*dxdy_degr/360.
+    !****************************************
+end subroutine calcGridArea

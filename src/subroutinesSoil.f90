@@ -144,6 +144,12 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
         close(654)
         useVEG2010=.true.
     endif
+
+    !call flush()
+    !open(unit = 654, file = '../INPUT/Vegetation_ECMWF_2010_NASA', form = 'unformatted')
+    !write(654) cvh(:,:, 1, 1)+cvl(:,:, 1, 1)
+    !close(654)
+
     !**************************************************************
     soilFraction(:,:) = 0.D0
     !Loop through output grid
@@ -194,6 +200,7 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
                 end do
             end do
             
+
             !Checked all land use grid points for single FLEXDUST output grid point > get mean soilFraction
             !***********************************************************
             if( gridSum .gt. 1.)then

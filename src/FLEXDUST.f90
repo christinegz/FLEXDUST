@@ -47,6 +47,7 @@ program FLEXDUST
     !character(len=200)              :: tmp
     character(len=100)              :: release_file
     real,dimension(:,:), allocatable    :: soilFraction(:,:)
+    real,dimension(:,:), allocatable    :: gridarea(:,:)
     real,dimension(:,:), allocatable    :: emission_mass(:,:),emission_flux(:,:), soilMoisture(:,:), cum_emission(:,:)
     real,dimension(:,:), allocatable    :: emission_mass_step(:,:),emission_flux_step(:,:)
     real,dimension(:,:), allocatable    :: outputField(:,:), erodibility(:,:)
@@ -120,6 +121,9 @@ program FLEXDUST
     allocate(soilFraction(0:nx_lon_out-1,0:ny_lat_out-1), STAT=ALLOC_ERR)
     IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
     
+    allocate(gridarea(0:nx_lon_out-1,0:ny_lat_out-1), STAT=ALLOC_ERR)
+    IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
+
     allocate(erodibility(0:nx_lon_out-1,0:ny_lat_out-1), STAT=ALLOC_ERR)
     IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
     
@@ -301,6 +305,8 @@ program FLEXDUST
                         
                         if(lons(ix).gt. 180.) lons(ix)= lons(ix)-360.
                         if(lons(ix).lt. -180.) lons(ix)= lons(ix)+360.
+
+                        call calcGridArea(gridarea(ix,iy), lats(iy),dx_dy_out)
                         
                     endif
                     lat_out=lats(iy)
@@ -399,7 +405,7 @@ program FLEXDUST
                                     ix_wind_n(ix,inNestNr(ix,iy)), iy_wind_n(iy,inNestNr(ix,iy)), emission_time, &
                                     scalingFactor, frictVelThres, shearStressThres, inClayGrid(ix,iy), &
                                     clayContent(ix_clay(ix),iy_clay(iy)),&
-                                    emission_flux_step(ix,iy), ustarVersion)
+                                    emission_flux_step(ix,iy), ustarVersion, gridarea(ix,iy))
                                 endif
                                 
                                 if(emissionModel.eq.3)then     
@@ -453,6 +459,7 @@ program FLEXDUST
                     call netCDF_prepareEmission(nc_file_out, lons, lats)
                     !Save bare soil fraction in netcdf out
                     call netCDF_write_grid(nc_file_out, "soil", soilFraction)
+                    call netCDF_write_grid(nc_file_out, "area", gridarea)
                 endif
                 timetesting(1)=tot_sec-(time_step-1)*3600
                 timetesting(2)=tot_sec+3600

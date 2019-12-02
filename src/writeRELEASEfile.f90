@@ -115,6 +115,20 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
         !**************************************************************
         write(releaseunit, *) "-----------------------------"
         !**************************************************************
+        
+        !Preparing for namelist format not working but stopped implementing because size increases
+        !write(releaseunit, *) '&RELEASES_CTRL'
+        ! write(releaseunit, '(A6XI3A)') 'NSPEC=',numberSpecies,','
+        ! do i = 1, numberSpecies-1
+        !     if (i.eq.1)then
+        !         write (7, "(*(A12G0,:,','))") 'SPECNUM_REL=',i + startSpecies
+        !     else
+        !         write (7, "(*(G0,:,','))") i + startSpecies
+        !     endif
+        ! end do        
+        ! write(releaseunit, *) '/'
+
+
 
     endif
     !************************************************************************
@@ -169,7 +183,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                 estPart = max(1, min(1000, int(particlesPerTonDust * combEmission/1000.)))
 
                 call flush()
-                if (estPart > 20)then
+                if (estPart > 25)then
                     
                     !Loop through complete size distribution if there are many particles emitted (otherwise pick one size class)
                     !*********************************************************
