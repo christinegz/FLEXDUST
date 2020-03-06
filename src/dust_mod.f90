@@ -85,15 +85,15 @@ module dust_mod
     !Output files/settings
     !***********************************************************************
     !output time frame
-    integer, parameter          :: start_date_day  = 20090101
+    integer, parameter          :: start_date_day  = 20101201
     integer, parameter          :: start_date_hour = 000000
     integer, parameter          :: time_step	  = 3
-    real, parameter             :: releaseDays	  = 365.
+    real, parameter             :: releaseDays	  = 400.
     !***********************************************************************
     
     !output grid
     !***********************************************************************
-    character(*),parameter      :: output_directory  = '/xnilu_wrk/users/cgz/cgz_flex_wrk/FLEXDUST/output/GLOBAL/2009/'
+    character(*),parameter      :: output_directory  = '/xnilu_wrk/users/cgz/cgz_flex_wrk/FLEXDUST/output/GLOBAL/2011/'
     real, parameter             :: lat_bottom        = -90
     real, parameter             :: lon_left          = -180
     real, parameter             :: dx_dy_out         = 0.25  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
@@ -107,7 +107,7 @@ module dust_mod
     !***********************************************************************
     character(*), parameter     :: release= 'RELEASES_FLEXDUST'
     character(*), parameter     :: summary_file=output_directory//'Summary.txt'
-    character(*), parameter     :: nc_file_out=output_directory//'FLEXDUST_out_2009.nc'
+    character(*), parameter     :: nc_file_out=output_directory//'FLEXDUST_out_2011.nc'
     !***********************************************************************
     
     !Switches output
