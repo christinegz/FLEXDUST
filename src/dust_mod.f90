@@ -38,11 +38,11 @@ module dust_mod
    
     !properties of the clayContent & sand file
     !***********************************************************************
-    character(*), parameter    :: clayFile= '../INPUT/Clay.srf'        !File with clay content
-    character(*), parameter    :: sandFile= '../INPUT/Sand.srf'        !File with sand content
-    real, parameter            :: dx_c= 0.0833, dy_c=0.0833         !Resolution sand/clay grids
-    real, parameter            :: xlon0_c= -180.00, ylat0_c=-56.50  !Lower left corner of clay/sand grids
-    integer,parameter          :: nx_c=4320 , ny_c=1686             !Size sand/clay grids
+    character(*), parameter    :: clayFile= '../INPUT/ISRIC_clay.bin'        !File with clay content
+    character(*), parameter    :: sandFile= '../INPUT/ISRIC_sand.bin'        !File with sand content
+    real, parameter            :: dx_c= 0.05, dy_c=0.05         !Resolution sand/clay grids
+    real, parameter            :: xlon0_c= -180.0, ylat0_c=-55.98  !Lower left corner of clay/sand grids
+    integer,parameter          :: nx_c=7200 , ny_c=2774             !Size sand/clay grids
     real, dimension(0:nx_c-1,0:ny_c-1) :: clayContent, sandContent  !Sand and clay should be equal grids!!!
     !***********************************************************************
     
@@ -85,18 +85,18 @@ module dust_mod
     !Output files/settings
     !***********************************************************************
     !output time frame
-    integer, parameter          :: start_date_day  = 20101201
+    integer, parameter          :: start_date_day  = 20150501
     integer, parameter          :: start_date_hour = 000000
     integer, parameter          :: time_step	  = 3
-    real, parameter             :: releaseDays	  = 400.
+    real, parameter             :: releaseDays	  = 31.
     !***********************************************************************
     
     !output grid
     !***********************************************************************
-    character(*),parameter      :: output_directory  = '/xnilu_wrk/users/cgz/cgz_flex_wrk/FLEXDUST/output/GLOBAL/2011/'
+    character(*),parameter      :: output_directory  = '/xnilu_wrk/users/cgz/cgz_flex_wrk/FLEXDUST/output/dump/'
     real, parameter             :: lat_bottom        = -90
     real, parameter             :: lon_left          = -180
-    real, parameter             :: dx_dy_out         = 0.25  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
+    real, parameter             :: dx_dy_out         = 0.5  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
     integer, parameter          :: release_dxdy_step = 4    !Interval of x and y in which release file should be written 
                                                             !(2 means that calculated emission of 4 grid cells with resolution dx_dy_out will be combined in 1 FLEXPART release)
     integer, parameter          :: ny_lat_out        = 180/dx_dy_out!180/dx_dy_out!5/dx_dy_out
@@ -107,12 +107,12 @@ module dust_mod
     !***********************************************************************
     character(*), parameter     :: release= 'RELEASES_FLEXDUST'
     character(*), parameter     :: summary_file=output_directory//'Summary.txt'
-    character(*), parameter     :: nc_file_out=output_directory//'FLEXDUST_out_2011.nc'
+    character(*), parameter     :: nc_file_out=output_directory//'FLEXDUST_out_test.nc'
     !***********************************************************************
     
     !Switches output
     !***********************************************************************
-    logical, parameter          :: RELEASEFILE=.true.       !Write a FLEXPART release file
+    logical, parameter          :: RELEASEFILE=.false.       !Write a FLEXPART release file
     logical, parameter          :: writeGridEmission=.true. !For each output time step, write a grid with emission flux (kg m-2), 
                                                             !practical for splitting in regions and doing FLEXPART simulations with changing number of particles
     !***********************************************************************

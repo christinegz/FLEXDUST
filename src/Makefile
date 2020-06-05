@@ -12,7 +12,7 @@ LIBPATH1 = /homevip/flexpart/gcc-5.4.0/lib
 #/homevip/flexpart/gcc-5.4.0/lib
 #LIBPATH2 =   /usr/lib/x86_64-linux-gnu/
 FFLAGS   =   -I$(INCPATH1) -I$(INCPATH_NCDF) -Wunused -fbounds-check -cpp -m64 -ffree-form -mcmodel=medium -fconvert=little-endian -frecord-marker=4 
-#FFLAGS   =   -I$(INCPATH1) -I$(INCPATH_NCDF) -g -mcmodel=medium -fbounds-check -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=zero,overflow,underflow -finit-real=nan
+#FFLAGS   =   -I$(INCPATH1) -I$(INCPATH_NCDF) -g  -fbacktrace -mcmodel=medium -fbounds-check -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=zero,overflow,underflow -finit-real=nan
 LDFLAGS  = $(FFLAGS)  -L$(LIBPATH1) -lgrib_api_f90 -lgrib_api -lm -ljasper -lnetcdff
 #-lnetcdff
 #-L$(LIBPATH2)

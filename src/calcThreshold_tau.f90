@@ -36,7 +36,6 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
 
     !Get the current soil volumetric water content, air density and precipitation
     !******************************************************************************
-
     if (inNestNr .gt. 0)then
         w = svw(ix_wind, iy_wind, 1, 1) * 100 !Soil volumetric water content >not available in nested grids so far
         rho_air = rhon(ix_wind_n, iy_wind_n, 1, 1, inNestNr) !Air density
@@ -55,7 +54,7 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
     !**********************************************************************************
     if (.not.inClay .or. clayCont_loc .le. 0)then
 
-        !no information on clay amount, use clay sized particles
+        !no information on clay amount, use clay sized particles (higher threshold)
         !******************************************************************************
         Diam_p = 10e-6
         shearStressThres = An**2 * ((rho_p - rho_air) * ga * Diam_p + &
@@ -69,7 +68,7 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
         !first calculate threshold friction velocity depending on grain size
         !******************************************************************************
         if (sandCont_loc .gt. 0.)then
-            !If sand is present, assume low threshold friction velocity as sandblasting can occur
+            !If sand is present, assume low threshold friction velocity, sandblasting can occur
             Diam_p = 76e-6
         else
             !Assume threshold friction velocity for clay sized particles
@@ -79,6 +78,8 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
         shearStressThres = An**2 * ((rho_p - rho_air) * ga * Diam_p + gamma_shao/Diam_p)
         frictVelThres = An * sqrt(((rho_p - rho_air)/rho_air) * ga * Diam_p + gamma_shao/(rho_air * Diam_p))
         !******************************************************************************
+        
+    endif
 
         !Change threshold friction velocity for certain regions in Iceland
         !******************************************************************************
@@ -121,7 +122,6 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
         endif
         !******************************************************************************
 
-
         !Block events in case of precipitation
         !******************************************************************************
         if (PRECIP_BLOCK) then
@@ -139,7 +139,7 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
 
         !If the water content exceeds the water content for capillary forces increase threshold
         !******************************************************************************
-        if (SOILMOSITURE_DEP)then
+        if (SOILMOSITURE_DEP .and. inClay .and. clayCont_loc .lt. 0)then
 
             !check the critical soil volumetric water content
             !******************************************************************************
@@ -157,24 +157,25 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
             endif
         endif
         !******************************************************************************
-
-        !If the region is vegetated, increase the threshold by f_d (Zender, 2003)
-        !******************************************************************************
-        if (OBSTACLES)then
-            if (soilFract .lt. 0.2)then
-                if ((applyClassErosion .and. .not.inErC) .or. .not.applyClassErosion)then
-                    z0m = 100e-6 !values z0m=100e-6 and z0s=33.3e-6 result in f_d=1.26
-                    z0s = 33.3e-6
-                    tmp_1 = log(z0m/z0s)
-                    tmp_2 = log(0.35 * ((0.1/z0s)**0.8))
-                    f_d = 1.0/(1.0 - tmp_1/tmp_2)
-                    !multiply with f_d squared because of conversion to stress
-                    shearStressThres = shearStressThres * f_d * f_d
-                    frictVelThres = frictVelThres * f_d
-                endif
+    
+    !If the region is vegetated, increase the threshold by f_d (Zender, 2003)
+    !******************************************************************************
+    if (OBSTACLES)then
+        if (soilFract .lt. 0.2)then
+            if ((applyClassErosion .and. .not.inErC) .or. .not.applyClassErosion)then
+                z0m = 100e-6 !values z0m=100e-6 and z0s=33.3e-6 result in f_d=1.26
+                z0s = 33.3e-6
+                tmp_1 = log(z0m/z0s)
+                tmp_2 = log(0.35 * ((0.1/z0s)**0.8))
+                f_d = 1.0/(1.0 - tmp_1/tmp_2)
+                !multiply with f_d squared because of conversion to stress
+                shearStressThres = shearStressThres * f_d * f_d
+                frictVelThres = frictVelThres * f_d
             endif
         endif
-        !******************************************************************************
     endif
+    !******************************************************************************
+
+
     !********************************************************************************** 
 end subroutine

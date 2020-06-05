@@ -65,54 +65,31 @@ logical :: inClay, test, ustarVersion
                 if(inClay)then
                     f_clay=real(f_clay_tmp/100)
                     if(f_clay.lt.0)then
-                        f_clay=0.0 !No infomation on clay content
-                    endif
-                    if(f_clay.gt.0.2)then ! not defined, use f_clay=0.1
+                        !No infomation on clay content but there is bare soil, assume 0.1
                         f_clay=0.1
                     endif
+                    if(f_clay.gt.0.19)then ! not defined for larger values
+                        f_clay=0.19
+                    endif
                 else
-                    f_clay=0.1 !Should never occur since clay is available at each grid point with soil
-                !print*, 'Not in Clay'
-		endif
-        
-                ! !Calculate area copied from FLEXPART
-                ! !****************************************
-                ! ylatp=lat+dxdy_degr
-                ! ylatm=lat
-                ! if ((ylatm.lt.0).and.(ylatp.gt.0.)) then
-                !     hzone=dxdy_degr*r_earth*pi180
-                ! else
-                !     cosfactp=cos(ylatp*pi180)
-                !     cosfactm=cos(ylatm*pi180)
-                !     if (cosfactp.lt.cosfactm) then
-                !         hzone=sqrt(1-cosfactp**2)- &
-                !         sqrt(1-cosfactm**2)
-                !         !print*, hzone
-                !         hzone=hzone*r_earth
-                !     else
-                !         hzone=sqrt(1-cosfactm**2)- &
-                !         sqrt(1-cosfactp**2)
-                !         hzone=hzone*r_earth
-                !     endif
-                ! endif
-                
-                ! gridarea=2.*pi*r_earth*hzone*dxdy_degr/360.
-                ! !****************************************
-                
-		!multiplication factor accounting for time step, area and conversion to kg
-		!**********************************************************
-		mfac=3600.0*time_int*gridarea	
-                                
+                    f_clay=0.1 !Soil grid point outside map of clay and sand (probably Antarctic?)
+                    print*, 'Bare soil outside clay/sand map at lat: ', lat , 'assumed f_clay=0.1.'
+                endif
+                        
+                !multiplication factor accounting for time step, area and conversion to kg
+                !**********************************************************
+                mfac=3600.0*time_int*gridarea	
+                                        
                 !coefficient eta
                 !****************************************
                 eta=100.*10**(0.134*f_clay*100-6)
+                        
+                !Emitted mass in kg for shear stress
+                mass_tmp_stress=scalingFactor*eta*rho_air/ga*(sqrt(stress_local/rho_air))**3.0*&
+                (1-shearStressThres/stress_local)&
+                *(1+sqrt(shearStressThres)/sqrt(stress_local))
                 
-		!Emitted mass in kg for shear stress
-		mass_tmp_stress=scalingFactor*eta*rho_air/ga*(sqrt(stress_local/rho_air))**3.0*&
-		(1-shearStressThres/stress_local)&
-		*(1+sqrt(shearStressThres)/sqrt(stress_local))
-		
-		!Emitted mass in kg for ustar
+                !Emitted mass in kg for ustar
                 mass_tmp_ustar=scalingFactor*eta*rho_air/ga*u_star_local**3*&
                      (1-mobilisationThreshold**2/u_star_local**2)*(1+mobilisationThreshold/u_star_local)
 

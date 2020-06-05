@@ -148,16 +148,25 @@ subroutine readClayContent()
     integer,parameter   :: unitclayfile=14
     !******************************************    
     
-    !Read the vector into grid
+    !Read the Soilgrids/ISRIC clay file
     !******************************************
-    open(unit=unitclayfile, file=clayFile)
-    do ii=ny_c-1, 0 , -1 !change order iy to get grid in same direction as wind field and land use
-            do jj=0, nx_c-1
-            read(unitclayfile,*)clayContent(jj,ii)
-        end do
-    end do
-    !******************************************   
+    open(unit=unitclayfile, file=clayFile, form = 'unformatted')
+    read(unitclayfile) clayContent
     close(unitclayfile)
+    !******************************************   
+    
+    !Read the vector into grid (Clay file from global soil data task)
+    !******************************************
+    !open(unit=unitclayfile, file=clayFile, action='read')
+    !do ii=ny_c-1, 0 , -1 !change order iy to get grid in same direction as wind field and land use
+    !        do jj=0, nx_c-1
+    !        read(unitclayfile,*) clayContent(jj,ii)
+    !    end do
+    !end do
+    !******************************************   
+    !close(unitclayfile)
+
+    
 end subroutine readClayContent
 
 subroutine readSandContent()
@@ -167,16 +176,13 @@ subroutine readSandContent()
     integer,parameter   :: unitsandfile=15
     !******************************************
     
-    !Read the vector into grid
+    !Read the Soilgrids/ISRIC clay file
     !******************************************
-    open(unit=unitsandfile, file=sandFile, action='read')
-    do i=ny_c-1, 0 , -1 !change order iy to get grid in same direction as wind field and land use
-            do j=0, nx_c-1
-            read(unitsandfile,*)sandContent(j,i)
-        end do
-    end do
-    !******************************************
+    open(unit=unitsandfile, file=sandFile, form = 'unformatted')
+    read(unitsandfile)sandContent
     close(unitsandfile)
+    !******************************************
+
 end subroutine readSandContent
 
 subroutine read_landuse_nest(filename, ny_file, nx_file, out_grid_turned, binary)
