@@ -139,7 +139,7 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
 
         !If the water content exceeds the water content for capillary forces increase threshold
         !******************************************************************************
-        if (SOILMOSITURE_DEP .and. inClay .and. clayCont_loc .lt. 0)then
+        if (SOILMOISTURE_DEP .and. inClay .and. clayCont_loc .gt. 0)then
 
             !check the critical soil volumetric water content
             !******************************************************************************

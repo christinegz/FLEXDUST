@@ -38,12 +38,25 @@ module dust_mod
    
     !properties of the clayContent & sand file
     !***********************************************************************
-    character(*), parameter    :: clayFile= '../INPUT/ISRIC_clay.bin'        !File with clay content
-    character(*), parameter    :: sandFile= '../INPUT/ISRIC_sand.bin'        !File with sand content
-    real, parameter            :: dx_c= 0.05, dy_c=0.05         !Resolution sand/clay grids
-    real, parameter            :: xlon0_c= -180.0, ylat0_c=-55.98  !Lower left corner of clay/sand grids
-    integer,parameter          :: nx_c=7200 , ny_c=2774             !Size sand/clay grids
+
+    !for default version
+    logical, parameter         :: ISRIC_soilmaps=.false.
+    character(*), parameter    :: clayFile= '../INPUT/Clay.srf'        !File with clay content
+    character(*), parameter    :: sandFile= '../INPUT/Sand.srf'        !File with sand content
+    real, parameter            :: dx_c= 0.0833, dy_c=0.0833         !Resolution sand/clay grids
+    real, parameter            :: xlon0_c= -180.00, ylat0_c=-56.50  !Lower left corner of clay/sand grids
+    integer,parameter          :: nx_c=4320 , ny_c=1686             !Size sand/clay grids
     real, dimension(0:nx_c-1,0:ny_c-1) :: clayContent, sandContent  !Sand and clay should be equal grids!!!
+    
+    !for alternative ISRIC version, not validated
+    !logical, parameter         :: ISRIC_soilmaps=.true.
+    !character(*), parameter    :: clayFile= '../INPUT/ISRIC_clay.bin'        !File with clay content
+    !character(*), parameter    :: sandFile= '../INPUT/ISRIC_sand.bin'        !File with sand content
+    !real, parameter            :: dx_c= 0.05, dy_c=0.05         !Resolution sand/clay grids
+    !real, parameter            :: xlon0_c= -180.0, ylat0_c=-55.98  !Lower left corner of clay/sand grids
+    !integer,parameter          :: nx_c=7200 , ny_c=2774             !Size sand/clay grids
+    !real, dimension(0:nx_c-1,0:ny_c-1) :: clayContent, sandContent  !Sand and clay should be equal grids!!!
+
     !***********************************************************************
     
     !global landuse file and properties
@@ -87,8 +100,8 @@ module dust_mod
     !output time frame
     integer, parameter          :: start_date_day  = 20150501
     integer, parameter          :: start_date_hour = 000000
-    integer, parameter          :: time_step	  = 3
-    real, parameter             :: releaseDays	  = 31.
+    integer, parameter          :: time_step	  = 6
+    real, parameter             :: releaseDays	  = 31
     !***********************************************************************
     
     !output grid
@@ -96,7 +109,7 @@ module dust_mod
     character(*),parameter      :: output_directory  = '/xnilu_wrk/users/cgz/cgz_flex_wrk/FLEXDUST/output/dump/'
     real, parameter             :: lat_bottom        = -90
     real, parameter             :: lon_left          = -180
-    real, parameter             :: dx_dy_out         = 0.5  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
+    real, parameter             :: dx_dy_out         = 0.25  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
     integer, parameter          :: release_dxdy_step = 4    !Interval of x and y in which release file should be written 
                                                             !(2 means that calculated emission of 4 grid cells with resolution dx_dy_out will be combined in 1 FLEXPART release)
     integer, parameter          :: ny_lat_out        = 180/dx_dy_out!180/dx_dy_out!5/dx_dy_out
@@ -107,7 +120,7 @@ module dust_mod
     !***********************************************************************
     character(*), parameter     :: release= 'RELEASES_FLEXDUST'
     character(*), parameter     :: summary_file=output_directory//'Summary.txt'
-    character(*), parameter     :: nc_file_out=output_directory//'FLEXDUST_out_test.nc'
+    character(*), parameter     :: nc_file_out=output_directory//'FLEXDUST_out.nc'
     !***********************************************************************
     
     !Switches output
@@ -134,7 +147,7 @@ module dust_mod
     logical, parameter          :: OBSTACLES=.true.          !Influence on roughness length by obstables?
     logical, parameter          :: EROSION_TOPO=.true.       !Add erodibility depending on topography acc. to Ginoux et al., 2001?
     logical, parameter          :: PRECIP_BLOCK=.false.      !Block dust emission in case of precipitation?
-    logical, parameter          :: SOILMOSITURE_DEP=.true.   !Should threshold friction velocity increase with soil moisture?
+    logical, parameter          :: SOILMOISTURE_DEP=.true.   !Should threshold friction velocity increase with soil moisture?
     logical, parameter          :: correctLSM_SNOW=.true.    !Use snow cover of nearby land-points if the point of interest is on a 'sea-point' in ECMWF but has soil fraction>0 
     logical, parameter          :: ustarVersion=.true.	     !Calculate emission based on friction velocity, or shear stress > implemented for testing but does not change results with current model setup!
     !***********************************************************************

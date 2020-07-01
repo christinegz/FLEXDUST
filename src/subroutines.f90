@@ -512,7 +512,7 @@ subroutine writeSummary(totalEmission)
     
     write(fileunit, *) 'Topographic control erodibility: ', EROSION_TOPO
     write(fileunit, *) 'Precipitation blocking mobil.:',PRECIP_BLOCK
-    write(fileunit, *) 'Soil moisture:', SOILMOSITURE_DEP
+    write(fileunit, *) 'Soil moisture:', SOILMOISTURE_DEP
     write(fileunit, *) 'Corr. land/sea:', correctLSM_SNOW
 
     write(fileunit, *) 'Total emitted mass:', totalEmission

@@ -148,23 +148,32 @@ subroutine readClayContent()
     integer,parameter   :: unitclayfile=14
     !******************************************    
     
-    !Read the Soilgrids/ISRIC clay file
-    !******************************************
-    open(unit=unitclayfile, file=clayFile, form = 'unformatted')
-    read(unitclayfile) clayContent
-    close(unitclayfile)
-    !******************************************   
     
-    !Read the vector into grid (Clay file from global soil data task)
-    !******************************************
-    !open(unit=unitclayfile, file=clayFile, action='read')
-    !do ii=ny_c-1, 0 , -1 !change order iy to get grid in same direction as wind field and land use
-    !        do jj=0, nx_c-1
-    !        read(unitclayfile,*) clayContent(jj,ii)
-    !    end do
-    !end do
-    !******************************************   
-    !close(unitclayfile)
+    if (ISRIC_soilmaps) then
+      !Read the Soilgrids/ISRIC clay file
+      !******************************************
+      open(unit=unitclayfile, file=clayFile, form = 'unformatted')
+      read(unitclayfile) clayContent
+      close(unitclayfile)
+      !******************************************   
+    else
+    
+      !Read the vector into grid (Clay file from global soil data task)
+      !******************************************
+      open(unit=unitclayfile, file=clayFile, action='read')
+      do ii=ny_c-1, 0 , -1 !change order iy to get grid in same direction as wind field and land use
+              do jj=0, nx_c-1
+               read(unitclayfile,*) clayContent(jj,ii)
+               !Fill clay content for missing soil types with default value
+               if (clayContent(jj,ii).eq.-1) then
+                clayContent(jj,ii)=5.
+               endif
+               !print*, 'Clay', ii,jj, clayContent(jj,ii)
+          end do
+      end do
+      !******************************************   
+      close(unitclayfile)
+    endif
 
     
 end subroutine readClayContent
@@ -174,14 +183,31 @@ subroutine readSandContent()
     implicit none
     integer             :: i,j
     integer,parameter   :: unitsandfile=15
-    !******************************************
     
-    !Read the Soilgrids/ISRIC clay file
-    !******************************************
-    open(unit=unitsandfile, file=sandFile, form = 'unformatted')
-    read(unitsandfile)sandContent
-    close(unitsandfile)
-    !******************************************
+    if (ISRIC_soilmaps) then
+      !Read the Soilgrids/ISRIC clay file
+      !******************************************
+      open(unit=unitsandfile, file=sandFile, form = 'unformatted')
+      read(unitsandfile)sandContent
+      close(unitsandfile)
+      !******************************************
+    else
+      !Read the vector into grid (Sand file from global soil data task)
+      !******************************************
+      open(unit=unitsandfile, file=sandFile, action='read')
+      do i=ny_c-1, 0 , -1 !change order iy to get grid in same direction as wind field and land use
+              do j=0, nx_c-1
+               read(unitsandfile,*) sandContent(j,i)
+               !Fill sand content for missing soil types with default value
+               if (sandContent(j,i).eq.-1) then
+                sandContent(j,i)=95.
+               endif          
+              end do
+      end do
+      !******************************************   
+      close(unitsandfile)
+
+    endif
 
 end subroutine readSandContent
 

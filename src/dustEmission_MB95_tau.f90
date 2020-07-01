@@ -65,15 +65,15 @@ logical :: inClay, test, ustarVersion
                 if(inClay)then
                     f_clay=real(f_clay_tmp/100)
                     if(f_clay.lt.0)then
-                        !No infomation on clay content but there is bare soil, assume 0.1
-                        f_clay=0.1
+                        !No infomation on clay content but there is bare soil, assume 0.05
+                        f_clay=0.05
                     endif
-                    if(f_clay.gt.0.19)then ! not defined for larger values
-                        f_clay=0.19
+                    if(f_clay.gt.0.2)then ! not defined for larger values
+                        f_clay=0.18
                     endif
                 else
-                    f_clay=0.1 !Soil grid point outside map of clay and sand (probably Antarctic?)
-                    print*, 'Bare soil outside clay/sand map at lat: ', lat , 'assumed f_clay=0.1.'
+                    f_clay=0.05 !Soil grid point outside map of clay and sand (probably Antarctic)
+                    print*, 'Bare soil outside clay/sand map at lat: ', lat , 'assumed f_clay=0.05.'
                 endif
                         
                 !multiplication factor accounting for time step, area and conversion to kg
