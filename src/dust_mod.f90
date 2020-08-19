@@ -98,15 +98,15 @@ module dust_mod
     !Output files/settings
     !***********************************************************************
     !output time frame
-    integer, parameter          :: start_date_day  = 20150501
+    integer, parameter          :: start_date_day  = 20171201
     integer, parameter          :: start_date_hour = 000000
-    integer, parameter          :: time_step	  = 6
-    real, parameter             :: releaseDays	  = 31
+    integer, parameter          :: time_step	  = 3
+    real, parameter             :: releaseDays	  = 0.25
     !***********************************************************************
     
     !output grid
     !***********************************************************************
-    character(*),parameter      :: output_directory  = '/xnilu_wrk/users/cgz/cgz_flex_wrk/FLEXDUST/output/dump/'
+    character(*),parameter      :: output_directory  = '/xnilu_wrk/users/cgz/cgz_flex_wrk/FLEXDUST/output/GLOBAL/2018/'
     real, parameter             :: lat_bottom        = -90
     real, parameter             :: lon_left          = -180
     real, parameter             :: dx_dy_out         = 0.25  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)

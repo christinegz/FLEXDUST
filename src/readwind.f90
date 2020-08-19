@@ -337,10 +337,12 @@ subroutine readwind(indj,n,uuh,vvh,wwh)
       if(isec1(6).eq.39) svw(i,j,1,n)= &!! Volumetric soil water top layer
            zsec4(nxfield*(ny-j-1)+i+1)
 !      if(isec1(6).eq.39) write(*,*) 'Read volumetric soil water'
-           
-      if(isec1(6).eq.139) st(i,j,1,n)= &!! Soil temperature level 1
-           zsec4(nxfield*(ny-j-1)+i+1)
-    !  if(isec1(6).eq.139) write(*,*) 'Read soil temperature'
+ 
+          !CGZ* remove soil temperature reading, not used
+!      if(isec1(6).eq.139) st(i,j,1,n)= &!! Soil temperature level 1
+!           zsec4(nxfield*(ny-j-1)+i+1)
+!    !  if(isec1(6).eq.139) write(*,*) 'Read soil temperature'
+           !***
        
        if(isec1(6).eq.27) cvl(i,j,1,n)= &!! Low vegetation cover
            zsec4(nxfield*(ny-j-1)+i+1)

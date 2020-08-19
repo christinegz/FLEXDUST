@@ -28,7 +28,7 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
     real :: frictVelThres, shearStressThres, clayCont_loc, sandCont_loc, out_erClass
     real :: precipMem(1:40)
     real :: f_d, soilFract, tmp_1, tmp_2, z0s, z0m
-    real :: w, w_acc, rho_air, Diam_p, precip, soil_T
+    real :: w, w_acc, rho_air, Diam_p, precip
     real, parameter :: gamma_shao = 2.9e-4, An = 0.111
     real, parameter :: rho_p = 2500
     logical :: inClay, inErC
@@ -40,12 +40,12 @@ subroutine calcThreshold_tau(frictVelThres, shearStressThres, inClay, clayCont_l
         w = svw(ix_wind, iy_wind, 1, 1) * 100 !Soil volumetric water content >not available in nested grids so far
         rho_air = rhon(ix_wind_n, iy_wind_n, 1, 1, inNestNr) !Air density
         precip = lsprecn(ix_wind_n, iy_wind_n, 1, 1, inNestNr) + convprecn(ix_wind_n, iy_wind_n, 1, 1, inNestNr) !Large scale + convective precipitation in m
-        soil_T = st(ix_wind, iy_wind, 1, 1) - 273.16
+        !soil_T = st(ix_wind, iy_wind, 1, 1) - 273.16
     else
         w = svw(ix_wind, iy_wind, 1, 1) * 100 !convert to percentage
         rho_air = rho(ix_wind, iy_wind, 1, 1)
         precip = lsprec(ix_wind, iy_wind, 1, 1) + convprec(ix_wind, iy_wind, 1, 1)
-        soil_T = st(ix_wind, iy_wind, 1, 1) - 273.16
+        !soil_T = st(ix_wind, iy_wind, 1, 1) - 273.16
     endif
     !save precip into precipMem
     precipMem(40) = precip
