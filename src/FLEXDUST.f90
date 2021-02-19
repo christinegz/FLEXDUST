@@ -78,6 +78,12 @@ program FLEXDUST
     ideltas				= nint((end_date-start_date)*86400.)
     !*************************************************************************************************
 
+    !Save settings dust_mod to output
+    !*************************************************************************************************
+    call system('cp '//trim('dust_mod.f90')//' '//trim(output_directory))
+    !*************************************************************************************************
+
+
     !Check settings of time step and releaseDays
     !*************************************************************************************************
     if (mod(releaseDays*24,real(time_step)) .gt. (1e-4)) then
@@ -334,6 +340,7 @@ program FLEXDUST
                         call getErodibility(erodibility(ix,iy), ix_wind(ix), iy_wind(iy), ix_ll, ix_ur, iy_ll, iy_ur)
                         
                         soilFraction(ix,iy)=soilFraction(ix,iy)*erodibility(ix,iy)
+
                         !Store soil fraction grid when finished > now only save in netcdf
                         !if(iy.eq.ny_lat_out-1 .and. ix.eq.nx_lon_out-1)then
                         !    print*,'Write a soil fraction grid for inspection'

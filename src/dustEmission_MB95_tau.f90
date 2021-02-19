@@ -69,7 +69,7 @@ logical :: inClay, test, ustarVersion
                         f_clay=0.05
                     endif
                     if(f_clay.gt.0.2)then ! not defined for larger values
-                        f_clay=0.18
+                        f_clay=0.15
                     endif
                 else
                     f_clay=0.05 !Soil grid point outside map of clay and sand (probably Antarctic)

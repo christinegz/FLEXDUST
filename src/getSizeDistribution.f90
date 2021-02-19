@@ -129,27 +129,27 @@ elseif(typeSizeDistr.eq.2)then
 
 elseif(typeSizeDistr.eq.3)then
     !Particle size distribution with more smaller size bins and less larger bins
-    inisize(0) = 0.2
-    inisize(1) = 0.5
-    inisize(2) = 1.0
-    inisize(3) = 1.5
-    inisize(4) = 2.5
-    inisize(5) = 5.0
-    inisize(6) = 8.0
-    inisize(7) = 11.0
-    inisize(8) = 15.0
-    inisize(9) = 20.0
+    inisize(0) = 0.04
+    inisize(1) = 0.22
+    inisize(2) = 0.71
+    inisize(3) = 1.30
+    inisize(4) = 2.06
+    inisize(5) = 3.53
+    inisize(6) = 6.10
+    inisize(7) = 8.63
+    inisize(8) = 12.25
+    inisize(9) = 17.32
     
-    inifrac(0,0) = 0.01!0.03!0.0065
-    inifrac(1,0) = 0.02!0.03!0.0164
-    inifrac(2,0) = 0.03!0.05!0.0327
-    inifrac(3,0) = 0.05!0.04!0.0491
-    inifrac(4,0) = 0.08! 0.09!0.0820
-    inifrac(5,0) = 0.16!0.24!0.1607
-    inifrac(6,0) = 0.23!0.23!0.2292
-    inifrac(7,0) = 0.24!0.16!0.2375
-    inifrac(8,0) = 0.15!0.11!0.1518
-    inifrac(9,0) = 0.03!0.02!0.0341
+    inifrac(0,0) = 0.0030
+    inifrac(1,0) = 0.0163
+    inifrac(2,0) = 0.0327
+    inifrac(3,0) = 0.0556
+    inifrac(4,0) = 0.0820
+    inifrac(5,0) = 0.1605
+    inifrac(6,0) = 0.2209
+    inifrac(7,0) = 0.2425
+    inifrac(8,0) = 0.1516
+    inifrac(9,0) = 1-sum(inifrac(:,0))!0.0342
       
     inifrac(:,1)=inifrac(:,0)
     inifrac(:,2)=inifrac(:,0)

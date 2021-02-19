@@ -260,7 +260,8 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                     call RANDOM_NUMBER(rand_class)
                     current_species = 0
                     cum_fract = inifrac(current_species, Junge_index)
-                    do while (rand_class .gt. cum_fract)
+                    do while (rand_class .gt. cum_fract .and. current_species .lt.9)
+                        !print*, rand_class, current_species, cum_fract
                         current_species = current_species + 1
                         cum_fract = cum_fract + inifrac(current_species, Junge_index)
                     end do

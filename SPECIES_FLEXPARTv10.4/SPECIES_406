@@ -16,8 +16,8 @@ DUST-406           Tracer name
 1.0E-9             Dry deposition (gases) - Henrys const.
 -9.99              Dry deposition (gases) - f0 (reactivity)
 2.5E03             Dry deposition (particles) - rho
-5.0E-6             Dry deposition (particles) - dquer
-1.11E00             Dry deposition (particles) - dsig
+3.53E-6             Dry deposition (particles) - dquer
+1.41E00             Dry deposition (particles) - dsig
 -9.99              Alternative: dry deposition velocity
 -9.99              molweight
 -9.99E-09          OH Reaction rate - C [cm^3/molecule/sec]

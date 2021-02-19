@@ -98,19 +98,19 @@ module dust_mod
     !Output files/settings
     !***********************************************************************
     !output time frame
-    integer, parameter          :: start_date_day  = 20171201
+    integer, parameter          :: start_date_day  = 20200417
     integer, parameter          :: start_date_hour = 000000
     integer, parameter          :: time_step	  = 3
-    real, parameter             :: releaseDays	  = 0.25
+    real, parameter             :: releaseDays	  = 20
     !***********************************************************************
     
     !output grid
     !***********************************************************************
-    character(*),parameter      :: output_directory  = '/xnilu_wrk/users/cgz/cgz_flex_wrk/FLEXDUST/output/GLOBAL/2018/'
+    character(*),parameter      :: output_directory  = '/output/test/'
     real, parameter             :: lat_bottom        = -90
-    real, parameter             :: lon_left          = -180
+    real, parameter             :: lon_left          = 90
     real, parameter             :: dx_dy_out         = 0.25  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
-    integer, parameter          :: release_dxdy_step = 4    !Interval of x and y in which release file should be written 
+    integer, parameter          :: release_dxdy_step = 1    !Interval of x and y in which release file should be written 
                                                             !(2 means that calculated emission of 4 grid cells with resolution dx_dy_out will be combined in 1 FLEXPART release)
     integer, parameter          :: ny_lat_out        = 180/dx_dy_out!180/dx_dy_out!5/dx_dy_out
     integer, parameter          :: nx_lon_out        = 360/dx_dy_out!360/dx_dy_out!14/dx_dy_out
@@ -125,7 +125,7 @@ module dust_mod
     
     !Switches output
     !***********************************************************************
-    logical, parameter          :: RELEASEFILE=.false.       !Write a FLEXPART release file
+    logical, parameter          :: RELEASEFILE=.true.       !Write a FLEXPART release file
     logical, parameter          :: writeGridEmission=.true. !For each output time step, write a grid with emission flux (kg m-2), 
                                                             !practical for splitting in regions and doing FLEXPART simulations with changing number of particles
     !***********************************************************************
@@ -133,13 +133,13 @@ module dust_mod
     !Model parameters
     !***********************************************************************
     real, parameter             :: mobThreshold = 0.3        !Default mobilization threshold should be wind speed or friction velocity, depending on choice "emissionModel", default should be 0.3 for emissionModel 2
-    real, parameter             :: particlesPerTonDust = 0.1 !Number of particles to be released per ton of dust, adjust with resolution
+    real, parameter             :: particlesPerTonDust = 0.8 !Number of particles to be released per ton of dust, adjust with resolution
     integer, parameter          :: typeSizeDistr=3           !Use size distribution as in DustBowl-Sodemann et al.2015 (1), or similar to Kok 2011 (2 & 3) with many small particles in 3
     integer, parameter          :: Junge_index = 0           !only for typeSizeDistr 1
     real*8, parameter           :: scalingFactor = 4.8e-4    !Default value 4.8e-4 for emissionModel 2
     integer, parameter          :: emissionModel = 2         !Choose from several emission Models (1: HSO, 2:MB95, 3:Kok et al. 2014), default and tested: 2. Options 1 and 3 may currently not be up to date with other changes in the model
-    real, parameter             :: snowLimit =0.05           !From which snow amount should mobilization not be possible?
-    real, parameter             :: minMassWrite=10.0         !Minimum emission (kg) for which to write a release > change depending on wanted resolution
+    real, parameter             :: snowLimit =0.02           !From which snow amount should mobilization not be possible?
+    real, parameter             :: minMassWrite=11.0         !Minimum emission (kg) for which to write a release > change depending on wanted resolution
     !***********************************************************************
     
     !Switches model
