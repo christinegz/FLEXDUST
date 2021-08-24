@@ -10,8 +10,8 @@ DUST-410           Tracer name
 -9.9               Below-cloud scavenging (gases) - B (wetb_gas)
 1.0                Below-cloud scavenging (gases and particles) - A
 1.0                Below-cloud scavenging (gases and particles)- B
-0.9                In-cloud scavenging (gases and particles) - Ai
-0.1                In-cloud scavenging (gases and particles) - Bi
+0.3                In-cloud scavenging (gases and particles) - Ai
+0.02                In-cloud scavenging (gases and particles) - Bi
 -9.9               Dry deposition (gases) - D
 1.0E-9             Dry deposition (gases) - Henrys const.
 -9.99              Dry deposition (gases) - f0 (reactivity)
