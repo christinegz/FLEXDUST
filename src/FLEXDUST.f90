@@ -78,11 +78,11 @@ program FLEXDUST
     ideltas				= nint((end_date-start_date)*86400.)
     !*************************************************************************************************
 
-    !Save settings dust_mod to output
+    !Save settings dust_mod and size distribution to output
     !*************************************************************************************************
     call system('cp '//trim('dust_mod.f90')//' '//trim(output_directory))
+    call system('cp '//trim('getSizeDistribution.f90')//' '//trim(output_directory))
     !*************************************************************************************************
-
 
     !Check settings of time step and releaseDays
     !*************************************************************************************************
@@ -287,6 +287,7 @@ program FLEXDUST
             print*, '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
             print* 
             !call writeGrid(output_directory//'Soil_fraction.dat',soilFraction,nx_lon_out, ny_lat_out)
+
         endif
         !*************************************************************
         
@@ -329,9 +330,9 @@ program FLEXDUST
                     precipitation(ix,iy,40)=lsprec(ix_wind(ix), iy_wind(iy),1,1)+convprec( ix_wind(ix), iy_wind(iy),1,1) !Large scale + convective precipitation in m
                     !********************************************************
                     
-                    !In first time step only determine erodibility at grid point if switched on
+                    !In first time step only determine erodibility at grid point if switched on and there is any soil fraction
                     !********************************************************
-                    if(tot_sec.eq.0 .and. EROSION_TOPO)then
+                    if(tot_sec.eq.0 .and. EROSION_TOPO .and. soilFraction(ix,iy).gt.1e-8 )then
                         !get lower left corner (ix_ll, iy_ll) of erosion area
                         call getGridPointWind(lat_out-5., lon_out-5,dummy_int, ix_ll, iy_ll, dummy_int, dummy_int)
                         !get upper right corner (ix_ur, iy_ur) of erosion area
