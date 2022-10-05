@@ -11,7 +11,7 @@ LIBPATH1 = /homevip/flexpart/gcc-5.4.0/lib
 #/usr/lib/x86_64-linux-gnu/ 
 #/homevip/flexpart/gcc-5.4.0/lib
 #LIBPATH2 =   /usr/lib/x86_64-linux-gnu/
-FFLAGS   =   -I$(INCPATH1) -I$(INCPATH_NCDF) -Wunused -fbounds-check -cpp -m64 -ffree-form -mcmodel=medium -fconvert=little-endian -frecord-marker=4 
+FFLAGS   =   -I$(INCPATH1) -I$(INCPATH_NCDF) -g -Wunused -fbounds-check -cpp -m64 -ffree-form -mcmodel=medium -fconvert=little-endian -frecord-marker=4 
 #FFLAGS   =   -I$(INCPATH1) -I$(INCPATH_NCDF) -g  -fbacktrace -mcmodel=medium -fbounds-check -Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=zero,overflow,underflow -finit-real=nan
 LDFLAGS  = $(FFLAGS)  -L$(LIBPATH1) -lgrib_api_f90 -lgrib_api -lm -ljasper -lnetcdff
 #-lnetcdff
@@ -67,7 +67,8 @@ dustEmission_MB95_tau.o\
 dustEmission_Kok14.o \
 gridcheck_nests.o \
 calcThreshold.o \
-calcThreshold_tau.o
+calcThreshold_tau.o \
+readcommand.o
 
 
 
