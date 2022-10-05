@@ -158,8 +158,8 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
     call check(NF90_PUT_ATT(nc_id, area_id, "standard_name", "Area grid box"))
     call check(NF90_PUT_ATT(nc_id, area_id, "units", "m2"))
     call check(NF90_PUT_ATT(nc_id, dayvar_id, "standard_name", "Startdate of simulation"))
-    call check(NF90_PUT_ATT(nc_id, clay_id, "standard_name", "sand map"))
-    call check(NF90_PUT_ATT(nc_id, sand_id, "standard_name", "clay map"))
+    call check(NF90_PUT_ATT(nc_id, clay_id, "standard_name", "clay map"))
+    call check(NF90_PUT_ATT(nc_id, sand_id, "standard_name", "sand map"))
     call check(NF90_PUT_ATT(nc_id, erodibility_id, "standard_name", "erodibility"))
     
     !Finished defining
