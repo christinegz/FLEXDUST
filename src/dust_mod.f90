@@ -100,16 +100,16 @@ module dust_mod
     !output time frame
     integer, parameter          :: start_date_day  = 20200417
     integer, parameter          :: start_date_hour = 000000
-    integer, parameter          :: time_step	  = 3
-    real, parameter             :: releaseDays	  = 20
+    integer, parameter          :: time_step	  = 6
+    real, parameter             :: releaseDays	  = 2
     !***********************************************************************
     
     !output grid
     !***********************************************************************
-    character(*),parameter      :: output_directory  = '/output/test/'
+    character(*),parameter      :: output_directory  = '../output/test/'
     real, parameter             :: lat_bottom        = -90
     real, parameter             :: lon_left          = 90
-    real, parameter             :: dx_dy_out         = 0.25  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
+    real, parameter             :: dx_dy_out         = 0.5  !resolution of emission calculation in degree, should be larger than resolution of global landuse file (15/3600)
     integer, parameter          :: release_dxdy_step = 1    !Interval of x and y in which release file should be written 
                                                             !(2 means that calculated emission of 4 grid cells with resolution dx_dy_out will be combined in 1 FLEXPART release)
     integer, parameter          :: ny_lat_out        = 180/dx_dy_out!180/dx_dy_out!5/dx_dy_out
