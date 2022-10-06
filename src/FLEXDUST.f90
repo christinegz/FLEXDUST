@@ -246,6 +246,10 @@ program FLEXDUST
     totalEmission=0
     totalParticles=0
     cum_emission(:,:)=0
+    emission_mass(:,:)=0
+    emission_mass_step(:,:)=0.
+    emission_flux_step(:,:)=0.
+    erodibility(:,:)=1.
     precipitation(:,:,:)=0
     step_nc=0
     time_last_wind=0
@@ -473,8 +477,6 @@ program FLEXDUST
                  !Switch to netCDF output
                  if(step_nc.eq.0)then
                      !Initialize netcdf file
-                  print*, 'prep netcdf: ', nc_file_out
-                  call flush()
                      call netCDF_prepareEmission(nc_file_out, lons, lats)
                      !Save bare soil fraction in netcdf out
                      call netCDF_write_grid(nc_file_out, "soil", soilFraction)
@@ -528,7 +530,7 @@ program FLEXDUST
      end do
     
     ! !*************************************************************************************************
-    ! DEALLOCATE(emission_mass, STAT = ALLOC_ERR)
+     DEALLOCATE(emission_mass, STAT = ALLOC_ERR)
     
     ! !Save cumulative dust emission flux field
     ! !grid_filename = output_directory // 'CumEmissionFlux.bin'
