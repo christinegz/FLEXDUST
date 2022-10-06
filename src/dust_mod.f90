@@ -144,7 +144,7 @@ module dust_mod
     real, parameter             :: snowLimit =0.02                  !From which snow amount should mobilization not be possible?
     real, parameter             :: minMassWrite=11.0                !Minimum emission (kg) for which to write a release > change depending on wanted resolution
     real, parameter             :: topo_scale_erosion(1)=(/10/)     !Region (degrees) to be considered in calculation of the erodibility related to topography, default value is 10 degrees. OTHER VALUES NOT TESTED
-    !real, parameter             :: topo_scale_erosion(1:4)=(/9., 6., 3., 1.2/) ! Hui et al. suggested to use the average erodibility of 4 different scales. They suggested (9,6,3,1.2) for East Asia, no tests on global simulations were performed. 
+    !real, parameter             :: topo_scale_erosion(1:4)=(/9., 6., 3., 1.2/) ! Tang et al. (2022, in review) suggested to use the average erodibility of 4 different scales. They suggested (9,6,3,1.2) for East Asia, no tests on global simulations were performed. 
     !***********************************************************************
     
     !Switches model
