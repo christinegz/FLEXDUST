@@ -57,18 +57,19 @@ program FLEXDUST
     integer,dimension(:), allocatable   :: ix_lu, iy_lu, ix_wind, iy_wind, ix_clay,  iy_clay, ix_erClass,  iy_erClass
     logical,dimension(:,:), allocatable :: inLU_n, inClayGrid,  inClassErosion
     integer,dimension(:,:),allocatable  :: ix_lu_n, iy_lu_n
-    INTEGER                             :: ALLOC_ERR
+    INTEGER                             :: ALLOC_ERR, dd
     integer(kind=1)                     :: landinventory_global(0:nx_landuse-1,0:ny_landuse-1)
     integer            	        	    :: landinventory_n(0:nx_landuse_n(1)-1,0:ny_landuse_n(1)-1)
-    integer, dimension(2)              :: timetesting
-    real,dimension(:), allocatable   :: lons, lats
+    integer, dimension(2)               :: timetesting
+    real,dimension(:), allocatable      :: lons, lats
+    real                                :: tmp_erosion
     integer :: emission_time
     !*************************************************************************************************
     
     !Read settings file COMMAND
     !*************************************************************************************************    
     call readcommand
-    write(*,*) 'Reading Namelist Complete' 
+    write(*,*) 'Reading COMMAND Namelist Complete' 
     !*************************************************************************************************    
 
     !Set some variables used in the code to read files copied from FLEXPART
@@ -130,7 +131,7 @@ program FLEXDUST
 
     allocate(soilFraction(0:nx_lon_out-1,0:ny_lat_out-1), STAT=ALLOC_ERR)
     IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
-       allocate(gridarea(0:nx_lon_out-1,0:ny_lat_out-1), STAT=ALLOC_ERR)
+    allocate(gridarea(0:nx_lon_out-1,0:ny_lat_out-1), STAT=ALLOC_ERR)
     IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
 
     allocate(erodibility(0:nx_lon_out-1,0:ny_lat_out-1), STAT=ALLOC_ERR)
@@ -249,7 +250,7 @@ program FLEXDUST
     emission_mass(:,:)=0
     emission_mass_step(:,:)=0.
     emission_flux_step(:,:)=0.
-    erodibility(:,:)=1.
+    erodibility(:,:)=0.
     precipitation(:,:,:)=0
     step_nc=0
     time_last_wind=0
@@ -338,21 +339,32 @@ program FLEXDUST
                       !Save clay and sand map for output grid
                       !********************************************************
                       if(tot_sec.eq.0)then
-                          clayMap(ix,iy)=clayContent(ix_clay(ix),iy_clay(iy))
-                          sandMap(ix,iy)=sandContent(ix_clay(ix),iy_clay(iy))
+                          if (inClayGrid(ix,iy)) then
+                            clayMap(ix,iy)=clayContent(ix_clay(ix),iy_clay(iy))
+                            sandMap(ix,iy)=sandContent(ix_clay(ix),iy_clay(iy))
+                          else
+                            clayMap(ix,iy)=-999.
+                            sandMap(ix,iy)=-999.
+                          endif
                       endif
                       !********************************************************
 
                       !In first time step only determine erodibility at grid point if switched on and there is any soil fraction
                       !********************************************************
                       if(tot_sec.eq.0 .and. EROSION_TOPO .and. soilFraction(ix,iy).gt.1e-8 )then
-                          !get lower left corner (ix_ll, iy_ll) of erosion area
-                          call getGridPointWind(lat_out-5., lon_out-5,dummy_int, ix_ll, iy_ll, dummy_int, dummy_int)
-                          !get upper right corner (ix_ur, iy_ur) of erosion area
-                          call getGridPointWind(lat_out+5., lon_out+5.,dummy_int, ix_ur, iy_ur,dummy_int,dummy_int)
-                          !scale erodibility in this area
-                          call getErodibility(erodibility(ix,iy), ix_wind(ix), iy_wind(iy), ix_ll, ix_ur, iy_ll, iy_ur)
-                      
+
+                            do dd = 1, size(topo_scale_erosion,1)
+                                !get lower left corner (ix_ll, iy_ll) of erosion area
+                                call getGridPointWind(lat_out-(topo_scale_erosion(dd)/2.), lon_out-(topo_scale_erosion(dd)/2.), &
+                                                        dummy_int, ix_ll, iy_ll, dummy_int, dummy_int)
+                                !get upper right corner (ix_ur, iy_ur) of erosion area
+                                call getGridPointWind(lat_out+(topo_scale_erosion(dd)/2.), lon_out+(topo_scale_erosion(dd)/2.), &
+                                                        dummy_int, ix_ur, iy_ur,dummy_int,dummy_int)
+                                !scale erodibility in this area
+                                call getErodibility(tmp_erosion, ix_wind(ix), iy_wind(iy), ix_ll, ix_ur, iy_ll, iy_ur)
+
+                                erodibility(ix,iy)=erodibility(ix,iy)+real(tmp_erosion/real(size(topo_scale_erosion,1)))
+                            end do
                           soilFraction(ix,iy)=soilFraction(ix,iy)*erodibility(ix,iy)
 
                           !Store soil fraction grid when finished > now only save in netcdf
@@ -483,6 +495,7 @@ program FLEXDUST
                      call netCDF_write_grid(nc_file_out, "area", gridarea)
                      call netCDF_write_grid(nc_file_out, "sand", sandMap)
                      call netCDF_write_grid(nc_file_out, "clay", clayMap)
+                     call netCDF_write_grid(nc_file_out, "erodibility", erodibility)
                  endif
                  timetesting(1)=tot_sec-(time_step-1)*3600
                  timetesting(2)=tot_sec+3600
