@@ -62,8 +62,9 @@ program FLEXDUST
     integer            	        	    :: landinventory_n(0:nx_landuse_n(1)-1,0:ny_landuse_n(1)-1)
     integer, dimension(2)               :: timetesting
     real,dimension(:), allocatable      :: lons, lats
-    real                                :: tmp_erosion
-    integer :: emission_time
+    real                                :: tmp_erosion 
+    integer                             :: time_ncf
+    integer                             :: emission_time
     !*************************************************************************************************
     
     !Read settings file COMMAND
@@ -268,7 +269,8 @@ program FLEXDUST
                  !Get wind field
              !*************************************************************
               call getfields(tot_sec,nstop, time_last_wind)
-             !print*, 'Finished reading wind, save time:', time_last_wind
+              !print*, 'Finished reading wind, save time:', time_last_wind
+              !call flush()
              !*************************************************************
          endif
              
@@ -501,7 +503,8 @@ program FLEXDUST
                  endif
                  timetesting(1)=tot_sec-(time_step-1)*3600
                  timetesting(2)=tot_sec+3600
-                 call netCDF_writeEmission(nc_file_out, emission_flux,timetesting, step_nc)           
+                 time_ncf=tot_sec+3600
+                 call netCDF_writeEmission(nc_file_out, emission_flux,timetesting, step_nc, time_ncf)           
                  step_nc= step_nc+1 
              endif
              !************************************************************************
@@ -517,13 +520,13 @@ program FLEXDUST
                  minMassWrite)
                  !Track total emission in this simulation
                  totalEmission=totalEmission+tmp_tot_emission
-                 write(*,*) 'Mass of emitted mineral dust up to this time step:', totalEmission, totalParticles
+                 write(*,*) 'Mass of emitted mineral dust up to this time step:', totalEmission,' #ptc: ', totalParticles
                  write(*,*) 'Mass still in memory:', sum(sum(emission_mass(:,:),2),1)
              else
                  !Set emission to 0
                  totalEmission=totalEmission+sum(sum(emission_mass(:,:),2),1)
                  emission_mass(:,:)=0.
-                 write(*,*) 'Mass of emitted mineral dust up to this time step:', totalEmission
+                 write(*,*) 'Mass of emitted mineral dust up to this time step:', totalEmission,' ptc: ', totalParticles
              endif
              !************************************************************************
            

@@ -111,14 +111,22 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
      !from flexpart ctm
      integer :: londim_id, latdim_id, timedim_id,lonvar_id, latvar_id, timevar_id,emitvar_id
      integer :: soil_id,area_id,clay_id,sand_id,tot_em_id,time_s_dim_id,erodibility_id
-     integer :: singdim_id, hourvar_id,dayvar_id
+     integer :: singdim_id, hourvar_id,dayvar_id, time_nc_var_id
      !Some vars for standard netcdf example
      real, dimension(0:nx_lon_out-1) :: lons
      real, dimension(0:ny_lat_out-1) :: lats
+     CHARACTER                   :: adate*8,atime*6,timeunit*32
+
      !real, dimension( int(releaseDays*24/time_step)) :: dates
 
      call check(nf90_create(trim(grid_filename), cmode = NF90_HDF5, ncid = nc_id) )
      
+     !Startdate writing
+     write(adate,'(i8.8)') start_date_day
+     write(atime,'(i6.6)') start_date_hour
+     timeunit = 'seconds since '//adate(1:4)//'-'//adate(5:6)// &
+     '-'//adate(7:8)//' '//atime(1:2)//':'//atime(3:4)
+
      !Define dimensions
      call check(NF90_DEF_DIM(nc_id, "val", 1, singdim_id))
      call check(NF90_DEF_DIM(nc_id, "time_s", 2, time_s_dim_id))
@@ -132,6 +140,7 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
      call check(nf90_def_var(nc_id, "starthour", nf90_int, (/ singdim_id /), hourvar_id))
      call check(nf90_def_var(nc_id, "lon", nf90_float, (/ londim_id /), lonvar_id))
      call check(nf90_def_var(nc_id, "lat", nf90_float, (/ latdim_id /), latvar_id))
+     call check(nf90_def_var(nc_id, "time", nf90_int, (/timedim_id/), time_nc_var_id))
      call check(nf90_def_var(nc_id, "Date", nf90_int, (/time_s_dim_id,timedim_id/), timevar_id))
      call check(nf90_def_var(nc_id, "Emission", nf90_float, (/londim_id,latdim_id,timedim_id /), emitvar_id))
      call check(nf90_def_var(nc_id, "cum_emission", nf90_float, (/londim_id,latdim_id/), tot_em_id))
@@ -147,8 +156,10 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
     call check(NF90_PUT_ATT(nc_id, lonvar_id, "description", "lower bound of grid cell"))
     call check(NF90_PUT_ATT(nc_id, latvar_id, "units", "degrees"))
     call check(NF90_PUT_ATT(nc_id, latvar_id, "standard_name", "latitude"))
-    write(str_time, *) "Seconds since ", start_date_day, "-", start_date_hour
-    call check(NF90_PUT_ATT(nc_id, timevar_id, "units", trim(str_time)))
+    call check(NF90_PUT_ATT(nc_id, time_nc_var_id, "units", timeunit))
+    call check(NF90_PUT_ATT(nc_id, time_nc_var_id, "calendar", "proleptic_gregorian"))
+    call check(NF90_PUT_ATT(nc_id, time_nc_var_id, "standard_name", "Time"))
+    call check(NF90_PUT_ATT(nc_id, timevar_id, "units", timeunit))
     call check(NF90_PUT_ATT(nc_id, timevar_id, "standard_name", "Date"))
     call check(NF90_PUT_ATT(nc_id, emitvar_id, "units", "kg/m2"))
     call check(NF90_PUT_ATT(nc_id, emitvar_id, "standard_name", "Emission"))
@@ -175,22 +186,27 @@ subroutine netCDF_prepareEmission(grid_filename, lons, lats)
      call check( nf90_close(nc_id) )
 end subroutine netCDF_prepareEmission
 
- subroutine netCDF_writeEmission(grid_filename, grid, time_test, i)
+ subroutine netCDF_writeEmission(grid_filename, grid, time_test, i, time_ncf)
      use dust_mod
      use netcdf
+     use par_mod, only: dp
      implicit none
 
      character(*) :: grid_filename
-     integer :: i, ncid,VarId_date, VarId_em
+     integer :: i, ncid,VarId_date, VarId_em,VarId_time
      integer, dimension(2) :: time_test
      real, dimension(0:nx_lon_out-1, 0:ny_lat_out-1) :: grid
+     integer  :: time_ncf
 
+     !print*, 'DEBUG: ncf i=', i+1, 'time value: ', time_ncf
      call check (nf90_open(grid_filename, nf90_Write, ncid))
      !Get id number
      call check (nf90_inq_varid(ncid, "Date", VarId_date))
      call check (nf90_inq_varid(ncid, "Emission", VarId_em))
+     call check (nf90_inq_varid(ncid, "time", VarId_time))
      call check( nf90_put_var(ncid, VarId_date,time_test, (/1,i+1/)))
      call check( nf90_put_var(ncid, VarId_em,grid, (/1,1,i+1/)))
+     call check( nf90_put_var(ncid, VarId_time,time_ncf, (/i+1/)))
      call check( nf90_close(ncid) )
 
  end subroutine netCDF_writeEmission

@@ -136,13 +136,13 @@ module dust_mod
     !Model parameters
     !***********************************************************************
     real, parameter             :: mobThreshold = 0.3               !Default mobilization threshold should be wind speed or friction velocity, depending on choice "emissionModel", default should be 0.3 for emissionModel 1
-    real, parameter             :: particlesPerTonDust = 0.75       !Number of particles to be released per ton of dust, adjust with resolution
+    real, parameter             :: particlesPerTonDust = 1.0        !Number of particles to be released per ton of dust, adjust with resolution
     integer, parameter          :: typeSizeDistr=3                  !Use size distribution as in DustBowl-Sodemann et al.2015 (1), or similar to Kok 2011 (2 & 3) with many small particles in 3
     integer, parameter          :: Junge_index = 0                  !only for typeSizeDistr 1
     real*8, parameter           :: scalingFactor = 4.8e-4           !Default value 4.8e-4 for emissionModel 2
     integer, parameter          :: emissionModel = 2                !Choose from several emission Models (1: HSO, 2:MB95, 3:Kok et al. 2014), default and tested: 2. Options 1 and 3 may currently not be up to date with other changes in the model
     real, parameter             :: snowLimit =0.02                  !From which snow amount should mobilization not be possible?
-    real, parameter             :: minMassWrite=11.0                !Minimum emission (kg) for which to write a release > change depending on wanted resolution
+    real, parameter             :: minMassWrite=15.0                !Minimum emission (kg) for which to write a release > change depending on wanted resolution
     real, parameter             :: topo_scale_erosion(1)=(/10/)     !Region (degrees) to be considered in calculation of the erodibility related to topography, default value is 10 degrees. OTHER VALUES NOT TESTED
     !real, parameter             :: topo_scale_erosion(1:4)=(/9., 6., 3., 1.2/) ! Tang et al. (2022, in review) suggested to use the average erodibility of 4 different scales. They suggested (9,6,3,1.2) for East Asia, no tests on global simulations were performed. 
     !***********************************************************************
