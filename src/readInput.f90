@@ -268,7 +268,9 @@ subroutine read_landuse_nest(filename, ny_file, nx_file, out_grid_turned, binary
 end subroutine  read_landuse_nest
 
 subroutine readlanduse(inputFile, landinvent_loc, nx_lu, ny_lu, binaryFile)
+  
   implicit none
+  
   integer :: ix,iy,nx_lu, ny_lu
   integer(kind=1) :: landinvent_loc(0:nx_lu-1,0:ny_lu-1)
   integer(kind=1) :: tmp(0:nx_lu-1,0:ny_lu-1)
@@ -305,7 +307,7 @@ subroutine readlanduse(inputFile, landinvent_loc, nx_lu, ny_lu, binaryFile)
         close(unitfile)
         !******************************************
     endif
-    
+  
     !Copy temporary grid to landinventory
     !******************************************
     landinvent_loc(0:nx_lu - 1, 0:ny_lu - 1) = tmp

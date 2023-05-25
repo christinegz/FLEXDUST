@@ -183,7 +183,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                 estPart = max(1, min(1000, int(particlesPerTonDust * combEmission/1000.)))
 
                 call flush()
-                if (estPart > 25)then
+                if (estPart > 30)then
                     
                     !Loop through complete size distribution if there are many particles emitted (otherwise pick one size class)
                     !*********************************************************
@@ -193,7 +193,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                         mass_species = inifrac(i, Junge_index) * combEmission;
                         !Determine number of particles
                         !*************************************************
-                        if (inisize(i) .lt. 15.0)then
+                        if (inisize(i) .lt. 10.0)then
                             nrPart = max(1, min(2000, int(particlesPerTonDust * mass_species/1000.)))
                         else
                             nrPart = max(1, min(1000, int(particlesPerTonDust * mass_species/1000.)))
@@ -268,13 +268,9 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
 
                     mass_species = combEmission
 
-                    !Get number of particles
+                    !Get number of particles (only 1 bin, take 2*particlesPerTonDust)
                     !*************************************************
-                    if (inisize(current_species) .lt. 15.0)then
-                        nrPart = max(1, min(2000, int(particlesPerTonDust * mass_species/1000.)))
-                    else
-                        nrPart = max(1, min(1000, int(particlesPerTonDust * mass_species/1000.)))
-                    endif
+                    nrPart = max(1, min(1000, int(particlesPerTonDust * 2 * mass_species/1000.)))
                     stepPart = stepPart + nrPart
 
                     !If less than 8 particles, choose random release time within release period

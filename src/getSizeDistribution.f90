@@ -153,6 +153,7 @@ elseif(typeSizeDistr.eq.3)then
       
     inifrac(:,1)=inifrac(:,0)
     inifrac(:,2)=inifrac(:,0)
+    
 else 
     print*, 'Unknown size distribution'
     stop

@@ -108,9 +108,15 @@ subroutine getfields(itime,nstop, time_last_wind)
                 memind(1)=1
 		call readwind(indj,memind(1),uuh,vvh,wwh)
 		call readwind_nests(indj,memind(1),uuhn,vvhn,wwhn)
+    !print*, 'Start calcpar'
+    !call flush()
 		call calcpar(memind(1),uuh,vvh,pvh) !Gets ustar
 		call calcpar_nests(memind(1),uuhn,vvhn,pvhn)
+    !print*, 'Start vert trans'
+    call flush()
 		call verttransform(memind(1),uuh,vvh,wwh,pvh) !gets air density
+    !print*, 'Fini vert trans'
+
 		call verttransform_nests(memind(1),uuhn,vvhn,wwhn,pvhn)
 		memtime(1)=wftime(indj+1)
     nstop = 1
