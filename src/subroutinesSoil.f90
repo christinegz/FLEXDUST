@@ -103,7 +103,7 @@ subroutine getErodibility(erodibility, ix_wind, iy_wind, ix_min, ix_max, iy_min,
     z_loc=oro(ix_wind,iy_wind) !Orography in unit m (conversion in readwind)
     
     erodibility=real((z_max-z_loc)/(z_max-z_min))**5.0
-    
+
     if(erodibility.gt.1.0)then
         print*, 'WARNING, erosion>1:', ix_wind, iy_wind, ix_min, ix_max, iy_min, iy_max, z_min, z_max, z_loc, erodibility
     endif
@@ -125,7 +125,7 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
     real :: vegetationECMWF(0:nx-1, 0:ny-1)
     real*8 :: gridSum
     real :: vegFrac
-    integer :: count, i, j
+    integer :: count, i, j, top_ix_lu, top_ix_lu_loop
     integer(kind = 1) :: landinventory_global(0:nx_landuse - 1, 0:ny_landuse - 1)
     integer :: landinventory_n(0:nx_landuse_n(1) - 1, 0:ny_landuse_n(1) - 1)
     logical :: city
@@ -154,8 +154,8 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
     soilFraction(:,:) = 0.D0
     !Loop through output grid
     !**************************************************************
-    do iy = 0, ny_lat_out - 2
-        do ix = 0, nx_lon_out - 2
+    do iy = 0, ny_lat_out - 1
+        do ix = 0, nx_lon_out - 1
 
             !reset for new point
             !**************************************************
@@ -166,8 +166,25 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
 
             !Make a grid with soil fraction from global landuse > only valid for GLCNMO land cover data!!
             !**************************************************
+            
+            if (ix.eq.nx_lon_out-1) then
+                top_ix_lu=min(ix_lu(ix)+(ix_lu(ix)-ix_lu(ix-1)),nx_landuse - 1)
+            else
+                top_ix_lu=min(ix_lu(ix + 1), nx_landuse - 1)
+            endif
+            
+
             do j = iy_lu(iy), min(iy_lu(iy + 1), ny_landuse - 1)
-                do i = ix_lu(ix), min(ix_lu(ix + 1), nx_landuse - 1)
+                
+                if (top_ix_lu .lt. ix_lu(ix)) then
+                    !Crossing right side of grid, start with right and later add left
+                    top_ix_lu_loop=nx_landuse -1
+                else
+                    top_ix_lu_loop=top_ix_lu
+                endif
+
+                do i = ix_lu(ix), top_ix_lu_loop
+
                     if (landinventory_global(i, j) .eq. 17)then
                         !bare land - sand
                         gridSum = gridSum + 1.0
@@ -198,7 +215,44 @@ subroutine getSoilFromLU(soilFraction, landinventory_global, landinventory_n, in
                         city = .true.
                     endif
                 end do
+
+                if (top_ix_lu .lt. ix_lu(ix)) then
+                    !now add left part for the case where emission grid crosses right border of landuse grid
+                    do i = 0, ix_lu(ix)
+                    if (landinventory_global(i, j) .eq. 17)then
+                        !bare land - sand
+                        gridSum = gridSum + 1.0
+
+                    else if (landinventory_global(i, j) .eq. 16)then
+                        !bare land - gravel/rock
+                        gridSum = gridSum + 0.4 !Partly erodible, topography to identify rock
+
+                    else if (landinventory_global(i, j) .eq. 10)then
+                        !sparse vegetation, get vegetation fraction from ECWMF but due to lower resolution only allow a vegetation cover between 10 and 90%
+                        if (useVEG2010)then
+                            !Not available in wind field, get from fixed file
+                            vegFrac=vegetationECMWF(ix_wind(ix), iy_wind(iy))
+                        else
+                            vegFrac = cvh(ix_wind(ix), iy_wind(iy), 1, 1) + cvl(ix_wind(ix), iy_wind(iy), 1, 1)
+                        endif
+
+                        !restrict vegetation fraction so high resolution land use 'sparse vegetation' cannot be overwritten by low-resolution ECMWF vegetation
+                        vegFrac = max(vegFrac, 0.30)
+                        vegFrac = min(vegFrac, 0.90)
+                        gridSum = gridSum + (1 - vegFrac)
+                    else
+                        !no soil fraction to be added
+                        gridSum = gridSum
+                    endif
+                    count = count + 1
+                    if (landinventory_global(i, j) .eq. 18)then
+                        city = .true.
+                    endif
+                end do
+            endif
+
             end do
+            
             
 
             !Checked all land use grid points for single FLEXDUST output grid point > get mean soilFraction

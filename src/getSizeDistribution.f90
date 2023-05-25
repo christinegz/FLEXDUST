@@ -149,7 +149,7 @@ elseif(typeSizeDistr.eq.3)then
     inifrac(6,0) = 0.2209
     inifrac(7,0) = 0.2425
     inifrac(8,0) = 0.1516
-    inifrac(9,0) = 1-sum(inifrac(:,0))!0.0342
+    inifrac(9,0) = 1-sum(inifrac(0:8,0))!0.0342
       
     inifrac(:,1)=inifrac(:,0)
     inifrac(:,2)=inifrac(:,0)

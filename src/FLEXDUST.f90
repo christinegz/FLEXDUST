@@ -40,7 +40,8 @@ program FLEXDUST
     real                            :: frictVelThres, shearStressThres
     real(kind=dp)                   :: juldate, start_date, start_date_available, end_date
     integer 			            :: tot_sec, tot_sec_end, time_last_wind,nstop, tmp_day, tmp_hour, time_wind_field, step_nc
-    integer                         :: totalParticles, ix_ll, ix_ur, iy_ll, iy_ur, dummy_int
+    integer*8                       :: totalParticles
+    integer                         :: ix_ll, ix_ur, iy_ll, iy_ur, dummy_int
     integer                         :: calculationStep
     real            				:: snow, tmp_tot_emission, totalEmission
     character(len=200)              :: grid_filename
@@ -326,7 +327,7 @@ program FLEXDUST
                       endif
                       lat_out=lats(iy)
                       lon_out=lons(ix)
-                  
+
                       if(lat_out.lt.-90 .or. lat_out.gt.90 .or. lon_out.lt.-180 .or. lon_out.gt.180)then
                           write(*,*) 'Incorrect latitude or longitude', lon_out, lat_out
                           stop

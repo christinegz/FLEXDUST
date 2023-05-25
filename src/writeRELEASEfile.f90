@@ -35,22 +35,48 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
     character(*):: filename
     real        :: particlesPerTonDust, dxdy_degr, lon_left, lat_bottom, combEmission, totalEmission, releaseDays
     integer     :: timestep, i, typeSizeDistr, numberSpecies, Junge_index, xx, yy
-    integer     :: nx_out, ny_out, ix, iy, date_day, date_hour, date_day_orig, date_hour_orig
+    integer     :: nx_out, ny_out, ix, iy, idate1, itime1, date_day_orig, date_hour_orig
     integer     :: date_day_ran, date_hour_ran, date_day_next_ran, date_hour_next_ran
     integer     :: date_day_next_orig, date_hour_next_orig, nr, ii, release_dxdy_step
-    integer     :: date_day_next, date_hour_next
-    integer     :: start_date_day, startSpecies, current_species, nrPart, stepPart, totalParticles, estPart
+    integer     :: idate2, itime2
+    integer     :: start_date_day, startSpecies, current_species, parts, stepPart, totalParticles, estPart
     real        :: emission(0:nx_out - 1, 0:ny_out - 1)
     real        :: cum_fract, rand_class, randomNumber, minMassWrite
-    real(kind = dp)                         :: juldate, mass_species, lat, lon, start_ran
-    logical                                 :: fileRELEASE
-    integer, parameter                      :: releaseunit = 333, aboveSfc = 1
-    real, parameter                         :: bottomHeight_dustProf = 1.0
-    real, parameter                         :: topHeight_dustProf = 100.0
+    real(kind = dp)                         :: juldate, mass_species, start_ran
+    real(4)                                 :: lat1, lon1, lat2, lon2
+    logical                                 :: fileRELEASE,outNML
+    integer, parameter                      :: releaseunit = 333
+    !real, parameter                         :: z1 = 1.0
+    !real, parameter                         :: z2 = 100.0
+    real(4)                                 :: z1, z2
+    integer                                 :: zkind
+    character(len=23)                       :: comment
     real(8), dimension(:), allocatable      :: inisize
+    real(4), dimension(:), allocatable      :: mass
     real(8), dimension(:,:), allocatable    :: inifrac
+    integer, dimension(:),allocatable       :: specnum_rel
+
     INTEGER :: ALLOC_ERR
     !***********************************************************************
+    namelist /releases_ctrl/ nspec, specnum_rel
+
+    namelist /release/ &
+        idate1, itime1, &
+        idate2, itime2, &
+        lon1, lon2, &
+        lat1, lat2, &
+        z1, z2, &
+        zkind, &
+        mass, &
+        parts, &
+        comment
+
+    !Set default values (parameter conflicts with namelist)
+    !***********************************************************************
+    outNML=.true.
+    z1 = 1.0
+    z2 = 100.0
+    zkind = 1
 
     !First adjust settings to chosen size distribution
     !***********************************************************************
@@ -72,6 +98,12 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
 
     allocate(inifrac(0:numberSpecies - 1, 0:2), STAT = ALLOC_ERR)
     IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
+
+    allocate(specnum_rel(0:numberSpecies - 1), STAT = ALLOC_ERR)
+    IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
+
+    allocate(mass(0:numberSpecies - 1), STAT = ALLOC_ERR)
+    IF (ALLOC_ERR /= 0) STOP "*** Not enough memory ***"
     !***********************************************************************
 
     !Check if the RELEASE file exists
@@ -89,6 +121,7 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
     !************************************************************************
     if (.not.fileRELEASE)then
 
+        if (.not.outNML) then !old RELEASES format (not compatible with FLEXPART11)
         !Fill 11 lines with something
         !**************************************************************
         do i = 0, 3
@@ -116,20 +149,15 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
         write(releaseunit, *) "-----------------------------"
         !**************************************************************
         
-        !Preparing for namelist format not working but stopped implementing because size increases
-        !write(releaseunit, *) '&RELEASES_CTRL'
-        ! write(releaseunit, '(A6XI3A)') 'NSPEC=',numberSpecies,','
-        ! do i = 1, numberSpecies-1
-        !     if (i.eq.1)then
-        !         write (7, "(*(A12G0,:,','))") 'SPECNUM_REL=',i + startSpecies
-        !     else
-        !         write (7, "(*(G0,:,','))") i + startSpecies
-        !     endif
-        ! end do        
-        ! write(releaseunit, *) '/'
-
-
-
+        !Write RELEASES as namelists
+        else
+            nspec=numberSpecies
+            do i = 0, numberSpecies - 1
+                specnum_rel(i)= i + startSpecies
+            end do
+            
+            write(releaseunit,nml=releases_ctrl)
+        endif
     endif
     !************************************************************************
 
@@ -153,12 +181,12 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
     do iy = 0, ny_out - 1, release_dxdy_step
         do ix = 0, nx_out - 1, release_dxdy_step
 
-            lat = lat_bottom + real(iy) * dxdy_degr
-            lon = lon_left + real(ix) * dxdy_degr
+            lat1 = lat_bottom + real(iy) * dxdy_degr
+            lon1 = lon_left + real(ix) * dxdy_degr
 
             !reset
             combEmission = 0 
-
+            mass(:)=0.0
             !gather release of several grid points
             do yy = iy, min(iy + release_dxdy_step - 1, ny_out - 1)
                 do xx = ix, min(ix + release_dxdy_step - 1, nx_out - 1)
@@ -188,68 +216,86 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                     !Loop through complete size distribution if there are many particles emitted (otherwise pick one size class)
                     !*********************************************************
                     do i = 0, numberSpecies - 1
+                        
+                        mass(:)=0.0
                         !Calculate mass for this particle size
                         !*************************************************
-                        mass_species = inifrac(i, Junge_index) * combEmission;
+                        mass(i) = inifrac(i, Junge_index) * combEmission;
+                        if (mass(i).lt.0) then
+                            print*, 'ERROR; negative mass:', mass(i), inifrac(i, Junge_index), combEmission
+                            call flush()
+                            stop
+                        endif
                         !Determine number of particles
                         !*************************************************
                         if (inisize(i) .lt. 10.0)then
-                            nrPart = max(1, min(2000, int(particlesPerTonDust * mass_species/1000.)))
+                            parts = max(1, min(2000, int(particlesPerTonDust * mass(i)/1000.)))
                         else
-                            nrPart = max(1, min(1000, int(particlesPerTonDust * mass_species/1000.)))
+                            parts = max(1, min(1000, int(particlesPerTonDust * mass(i)/1000.)))
                         endif
-                        stepPart = stepPart + nrPart
+                        stepPart = stepPart + parts
                         
                         !If less than 8 particles, choose random release time within release period that covers 10% of release period
                         !This is done because depending on settings in FLEXPART it may start all particles at once at the beginning of
                         !a release if there are few particles.
-                        if (nrPart .lt. 8)then
+                        if (parts .lt. 8)then
                             call RANDOM_NUMBER(randomNumber)
                             start_ran=juldate-real(real(timestep-1)/24.) + (randomNumber * real(timestep))/24. !Random start time within release period
                             call caldate(start_ran, date_day_ran, date_hour_ran) !Start of release in right format                           
                             call caldate(MIN(start_ran+real(real(0.10*timestep))/24.,juldate + real(real(1)/24.)), & !End of random release time may not succeed end of release period
                             date_day_next_ran, date_hour_next_ran)
                             
-                            date_day = date_day_ran
-                            date_hour = date_hour_ran
-                            date_day_next = date_day_next_ran
-                            date_hour_next = date_hour_next_ran
+                            idate1 = date_day_ran
+                            itime1 = date_hour_ran
+                            idate2 = date_day_next_ran
+                            itime2 = date_hour_next_ran
 
                         else
-                            date_day = date_day_orig
-                            date_hour = date_hour_orig
-                            date_day_next = date_day_next_orig
-                            date_hour_next = date_hour_next_orig
+                            idate1 = date_day_orig
+                            itime1 = date_hour_orig
+                            idate2 = date_day_next_orig
+                            itime2 = date_hour_next_orig
                         endif
 
-                        !write release info
-                        !*************************************************
-                        write(releaseunit, '(I8 I07.6)') date_day, date_hour
-                        write(releaseunit, '(I8 I07.6)') date_day_next, date_hour_next
-                        write(releaseunit, '(F9.4)') lon
-                        write(releaseunit, '(F9.4)') lat
-                        write(releaseunit, '(F9.4)') lon + real(dxdy_degr * release_dxdy_step)
-                        write(releaseunit, '(F9.4)') lat + real(dxdy_degr * release_dxdy_step)
-                        write(releaseunit, '(I9)') aboveSfc
-                        write(releaseunit, '(F10.3)') bottomHeight_dustProf
-                        write(releaseunit, '(F10.3)') topHeight_dustProf
-                        write(releaseunit, '(I9)') nrPart
+                        if (.not.outNML) then !old RELEASES format (not compatible with FLEXPART11)
+                            !write release info
+                            !*************************************************
+                            write(releaseunit, '(I8 I07.6)') idate1, itime1
+                            write(releaseunit, '(I8 I07.6)') idate2, itime2
+                            write(releaseunit, '(F9.4)') lon1
+                            write(releaseunit, '(F9.4)') lat1
+                            write(releaseunit, '(F9.4)') lon1 + real(dxdy_degr * release_dxdy_step)
+                            write(releaseunit, '(F9.4)') lat1 + real(dxdy_degr * release_dxdy_step)
+                            write(releaseunit, '(I9)') zkind
+                            write(releaseunit, '(F10.3)') z1
+                            write(releaseunit, '(F10.3)') z2
+                            write(releaseunit, '(I9)') parts
 
-                        !write mass at this point for all species
-                        !*************************************************
-                        do ii = 0, numberSpecies - 1
-                            if (ii .eq. i) then
-                                write(releaseunit, '(E10.4)') mass_species
-                            else
-                                write(releaseunit, '(E10.4)') 0.0
-                            endif
-                        end do
+                            !write mass at this point for all species
+                            !*************************************************
+                            do ii = 0, numberSpecies - 1
+                                if (ii .eq. i) then
+                                    write(releaseunit, '(E10.4)') mass(i)
+                                else
+                                    write(releaseunit, '(E10.4)') 0.0
+                                endif
+                            end do
 
-                        !Finish with name of this particular release
-                        !*************************************************
-                        write(releaseunit, '(A14I8I06.6A1I0.4A8I3)') 'Dust_location_', &
-                        date_day, date_hour, '_', nr, '_species', startSpecies + i
-                        write(releaseunit, *) '-----------------------------'
+                            !Finish with name of this particular release
+                            !*************************************************
+                            write(releaseunit, '(A14I8I06.6A1I0.4A8I3)') 'Dust_location_', &
+                            idate1, itime1, '_', nr, '_species', startSpecies + i
+                            write(releaseunit, *) '-----------------------------'
+
+                        else
+                            lon2=lon1 + real(dxdy_degr * release_dxdy_step)
+                            lat2=lat1 + real(dxdy_degr * release_dxdy_step)
+
+                            write(comment, '(A5I8A1I0.5A1I3)') 'Dust_', &
+                            idate1, '_', nr, '_', startSpecies + i
+
+                            write(releaseunit,nml=release)
+                        endif
                         nr = nr + 1
                     end do
 
@@ -266,60 +312,73 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
                         cum_fract = cum_fract + inifrac(current_species, Junge_index)
                     end do
 
-                    mass_species = combEmission
+                    mass(current_species) = combEmission
 
                     !Get number of particles (only 1 bin, take 2*particlesPerTonDust)
                     !*************************************************
-                    nrPart = max(1, min(1000, int(particlesPerTonDust * 2 * mass_species/1000.)))
-                    stepPart = stepPart + nrPart
+                    parts = max(1, min(1000, int(particlesPerTonDust * 2 * mass(current_species)/1000.)))
+                    stepPart = stepPart + parts
 
                     !If less than 8 particles, choose random release time within release period
-                    if (nrPart .lt. 8)then
+                    if (parts .lt. 8)then
                         call RANDOM_NUMBER(randomNumber)
                         start_ran=juldate-real(real(timestep-1)/24.) + (randomNumber * real(timestep))/24. !Random start time within release period
                         call caldate(start_ran, date_day_ran, date_hour_ran) !Start of release in right format                           
                         call caldate(MIN(start_ran+real(real(0.10*timestep))/24.,juldate + real(real(1)/24.)), & !End of random release time may not succeed end of release period
                         date_day_next_ran, date_hour_next_ran)
                      
-                        date_day = date_day_ran
-                        date_hour = date_hour_ran
-                        date_day_next = date_day_next_ran
-                        date_hour_next = date_hour_next_ran
+                        idate1 = date_day_ran
+                        itime1 = date_hour_ran
+                        idate2 = date_day_next_ran
+                        itime2 = date_hour_next_ran
+
                     else
-                        date_day = date_day_orig
-                        date_hour = date_hour_orig
-                        date_day_next = date_day_next_orig
-                        date_hour_next = date_hour_next_orig
+                        idate1 = date_day_orig
+                        itime1 = date_hour_orig
+                        idate2 = date_day_next_orig
+                        itime2 = date_hour_next_orig
                     endif
 
-                    !write release info
-                    !*************************************************
-                    write(releaseunit, '(I8 I07.6)') date_day, date_hour
-                    write(releaseunit, '(I8 I07.6)') date_day_next, date_hour_next
-                    write(releaseunit, '(F9.4)') lon
-                    write(releaseunit, '(F9.4)') lat
-                    write(releaseunit, '(F9.4)') lon + real(dxdy_degr * release_dxdy_step)
-                    write(releaseunit, '(F9.4)') lat + real(dxdy_degr * release_dxdy_step)
-                    write(releaseunit, '(I9)') aboveSfc
-                    write(releaseunit, '(F10.3)') bottomHeight_dustProf
-                    write(releaseunit, '(F10.3)') topHeight_dustProf
-                    write(releaseunit, '(I9)') nrPart
+                    if (.not.outNML) then !old RELEASES format (not compatible with FLEXPART11)
+                        !write release info
+                        !*************************************************
+                        write(releaseunit, '(I8 I07.6)') idate1, itime1
+                        write(releaseunit, '(I8 I07.6)') idate2, itime2
+                        write(releaseunit, '(F9.4)') lon1
+                        write(releaseunit, '(F9.4)') lat1
+                        write(releaseunit, '(F9.4)') lon1 + real(dxdy_degr * release_dxdy_step)
+                        write(releaseunit, '(F9.4)') lat1 + real(dxdy_degr * release_dxdy_step)
+                        write(releaseunit, '(I9)') zkind
+                        write(releaseunit, '(F10.3)') z1
+                        write(releaseunit, '(F10.3)') z2
+                        write(releaseunit, '(I9)') parts
 
-                    !write mass at this point for all species
-                    !*************************************************
-                    do ii = 0, numberSpecies - 1
-                        if (ii .eq. current_species) then
-                            write(releaseunit, '(E10.4)') combEmission
-                        else
-                            write(releaseunit, '(E10.4)')0.0
-                        endif
-                    end do
+                        !write mass at this point for all species
+                        !*************************************************
+                        do ii = 0, numberSpecies - 1
+                            if (ii .eq. current_species) then
+                                write(releaseunit, '(E10.4)') mass(ii)
+                            else
+                                write(releaseunit, '(E10.4)')0.0
+                            endif
+                        end do
 
-                    !Finish with name of this particular release
-                    !*************************************************
-                    write(releaseunit, '(A14I8I06.6A1I0.4A8I3)') 'Dust_location_', &
-                    date_day, date_hour, '_', nr, '_species', startSpecies + current_species
-                    write(releaseunit, *) '-----------------------------'
+                        !Finish with name of this particular release
+                        !*************************************************
+                        write(releaseunit, '(A14I8I06.6A1I0.4A8I3)') 'Dust_location_', &
+                            idate1, itime1, '_', nr, '_species', startSpecies + current_species
+                        write(releaseunit, *) '-----------------------------'
+
+                    else
+                        !Write namelist release
+                        !*************************************************
+                        lon2=lon1 + real(dxdy_degr * release_dxdy_step)
+                        lat2=lat1 + real(dxdy_degr * release_dxdy_step)
+
+                        write(comment, '(A5I8A1I0.5A1I3)') 'Dust_', &
+                            idate1, '_', nr, '_', startSpecies + current_species
+                        write(releaseunit,nml=release)
+                    endif
                     nr = nr + 1
 
                 endif
@@ -332,6 +391,8 @@ subroutine writeRELEASEfile(filename, typeSizeDistr, particlesPerTonDust, Junge_
     !Finished writing for now, close the release file
     !************************************************************************
     close(releaseunit)
+
     !************************************************************************
     totalParticles = totalParticles + stepPart
+
 end subroutine
